@@ -75,7 +75,7 @@ if DO_IMPORT_ALL
 
     % Política de duplicata: 'skip' (padrão) ou 'update'
     DEDUP_MODE      = 'update';   % 'skip' ou 'update'
-    FORCE_REIMPORT  = false;      % true: ignora markers processed.ok
+    FORCE_REIMPORT  = false;      % true: reimporta sempre (ignora processed.ok)
 
     subs = dir(RAW_DIR); subs = subs([subs.isdir]); subs = subs(~ismember({subs.name},{'.','..'}));
     logs = {};
@@ -85,23 +85,14 @@ if DO_IMPORT_ALL
         sub    = subs(k).name;
         subdir = fullfile(RAW_DIR,sub);
 
-        % ---- marker para evitar reprocessamento desnecessário ----
-        marker = fullfile(subdir,'processed.ok');
-        if ~FORCE_REIMPORT && isfile(marker)
-            n_skipped = n_skipped + 1;
-            logs(end+1,:) = {sub, 'SKIP(marker)'}; %#ok<SAGROW>
-            fprintf('  · %-30s  (marcado como processado) \n', sub);
-            continue
-        end
-
-        % Extrair a,b,h e (opcionais) px/py do nome da pasta
+        % --- Extrai a,b,h e (opcionais) px/py do NOME da pasta (antes de checar marker) ---
         a_nm = NaN; b_nm = NaN; h_nm = NaN; Lx_nm = Lx_nm_fallback; Ly_nm = Ly_nm_fallback;
         tok = regexp(sub,'a(\d+)[^\d]+b(\d+)[^\d]+h(\d+)','tokens','once');
         if ~isempty(tok), a_nm=str2double(tok{1}); b_nm=str2double(tok{2}); h_nm=str2double(tok{3}); end
         tpx = regexp(sub,'px(\d+)','tokens','once'); if ~isempty(tpx), Lx_nm = str2double(tpx{1}); end
         tpy = regexp(sub,'py(\d+)','tokens','once'); if ~isempty(tpy), Ly_nm = str2double(tpy{1}); end
 
-        % Verifica arquivos necessários
+        % --- Verifica arquivos necessários (8 ASCII) ---
         need = { ...
           'SZmax(1),Zmin(1).txt','SZmax(2),Zmin(2).txt', ...
           'SZmax(1),Zmin(2).txt','SZmax(2),Zmin(1).txt', ...
@@ -118,7 +109,29 @@ if DO_IMPORT_ALL
             continue
         end
 
-        % Lê complexos
+        % --- Calcula chave geométrica para checar duplicata na biblioteca ---
+        keyLx = round(Lx_nm); keyLy = round(Ly_nm);
+        keyH  = round(h_nm);  keyA  = round(a_nm);  keyB = round(b_nm);
+        isDup = false(height(T),1);
+        if ~isempty(T)
+            isDup = T.Lx_nm==keyLx & T.Ly_nm==keyLy & T.h_nm==keyH & T.a_nm==keyA & T.b_nm==keyB;
+        end
+        dupExists = any(isDup);
+
+        % --- Agora sim, decide sobre marker processed.ok (apenas como acelerador) ---
+        marker = fullfile(subdir,'processed.ok');
+        if ~FORCE_REIMPORT && isfile(marker)
+            if dupExists && strcmpi(DEDUP_MODE,'skip')
+                n_skipped = n_skipped + 1;
+                logs(end+1,:) = {sub, 'SKIP(marker+dup)'}; %#ok<SAGROW>
+                fprintf('  · %-30s  (marker & duplicata) → SKIP\n', sub);
+                continue
+            end
+            % Se DEDUP_MODE='update' OU não existe na biblioteca, vamos reimportar/atualizar
+            % (não fazemos continue aqui)
+        end
+
+        % --- Lê complexos (último ponto de cada curva) ---
         getC  = @(fn) read_cst_scalar_complex(fullfile(subdir,fn));
         S21_11 = getC('SZmax(1),Zmin(1).txt');  % 1->1
         S21_22 = getC('SZmax(2),Zmin(2).txt');  % 2->2
@@ -137,20 +150,12 @@ if DO_IMPORT_ALL
         if abs(P_TE-1)>tol_power || abs(P_TM-1)>tol_power, warn=[warn sprintf('[POWER TE=%.3f TM=%.3f]',P_TE,P_TM)]; end
         if cross_max>max_cross, warn=[warn sprintf('[XPOL=%.3f]',cross_max)]; end
 
-        % ---- CHAVE geométrica (dedup) ----
-        % Arredondar para inteiro em nm (evita problemas de float)
-        keyLx = round(Lx_nm); keyLy = round(Ly_nm);
-        keyH  = round(h_nm);  keyA  = round(a_nm);  keyB = round(b_nm);
-
-        isDup = T.Lx_nm==keyLx & T.Ly_nm==keyLy & T.h_nm==keyH & ...
-                T.a_nm==keyA & T.b_nm==keyB;
-
-        % Linha candidata (numérica)
+        % --- Linha candidata (numérica) ---
         r = [ keyLx, keyLy, keyH, keyA, keyB, ...
               real(Exx), imag(Exx), real(Eyy), imag(Eyy), ...
               abs(Exx), abs(Eyy), angle(Exx)*180/pi, angle(Eyy)*180/pi ];
 
-        if any(isDup)
+        if dupExists
             switch lower(DEDUP_MODE)
                 case 'skip'
                     n_skipped = n_skipped + 1;
@@ -172,7 +177,7 @@ if DO_IMPORT_ALL
                 sub, angle(Exx)*180/pi, abs(Exx), angle(Eyy)*180/pi, abs(Eyy), warn);
         end
 
-        % grava marker (para acelerar próximas rodadas)
+        % --- grava marker (apenas informativo) ---
         fid = fopen(marker,'w');
         if fid>0
             fprintf(fid,'ok %s\n', datestr(now));
@@ -182,8 +187,7 @@ if DO_IMPORT_ALL
         logs(end+1,:) = {sub, warn}; %#ok<SAGROW>
     end
 
-    % === salvar CSV único (deduplicado) ===
-    % (garante unicidade da chave — se vieram duplicados fora do fluxo)
+    % === salvar CSV único (deduplicado novamente por segurança) ===
     [~, ia] = unique( strcat(string(T.Lx_nm),'_',string(T.Ly_nm),'_', ...
                              string(T.h_nm),'_',string(T.a_nm),'_',string(T.b_nm)) , 'stable');
     T = T(ia,:);
@@ -353,11 +357,10 @@ function c = read_cst_scalar_complex(fname)
     end
     if isempty(data), error('Sem dados numéricos em %s', fname); end
     v = data(end,:);
-    % Heurística: [Mag,PhaseDeg] OU [Re,Im] no final
+    % Heurística: [Mag,PhaseDeg] OU [Re,Im] no final (ou 3 col freq/Re/Im)
     if numel(v)==2
         c = v(1) + 1i*v(2);
     elseif numel(v)>=3 && abs(v(end-1))<=2 && abs(v(end))<=2
-        % última dupla parece |Re|,|Im| (<=2 ~ coerente para S)
         c = v(end-1) + 1i*v(end);
     else
         Mag = v(end-1); Ph = v(end);
