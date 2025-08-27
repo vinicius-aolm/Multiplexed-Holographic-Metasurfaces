@@ -1,0 +1,3 @@
+Biblioteca: 6 meta-atomos | Cobertura fase (Exx)=11%  (Eyy)=6% | Mediana |Exx|=NaN  |Eyy|=NaN
+Biblioteca: 4 meta-atomos | Cobertura fase (Exx)=6%  (Eyy)=6% | Mediana |Exx|=0.99  |Eyy|=0.93
+Biblioteca: 1 meta-atomos | Cobertura fase (Exx)=6%  (Eyy)=6% | Mediana |Exx|=0.99  |Eyy|=0.93
