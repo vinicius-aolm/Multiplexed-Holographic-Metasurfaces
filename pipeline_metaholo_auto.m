@@ -70,15 +70,16 @@ if DO_IMPORT_ALL
             'VariableNames', {'Lx_nm','Ly_nm','h_nm','a_nm','b_nm', ...
                               'Re_Exx','Im_Exx','Re_Eyy','Im_Eyy','Abs_Exx','Abs_Eyy','Phi_x_deg','Phi_y_deg'});
     end
+    % Garante tipos numéricos
+    T = convertvars(T, T.Properties.VariableNames, 'double');
 
     % Política de duplicata: 'skip' (padrão) ou 'update'
     DEDUP_MODE      = 'update';   % 'skip' ou 'update'
-    FORCE_REIMPORT  = false;    % true: ignora markers processed.ok
+    FORCE_REIMPORT  = false;      % true: ignora markers processed.ok
 
     subs = dir(RAW_DIR); subs = subs([subs.isdir]); subs = subs(~ismember({subs.name},{'.','..'}));
     logs = {};
-
-    n_added = 0; n_skipped = 0; n_updated = 0;
+    n_added = 0; n_skipped = 0; n_updated = 0; n_missing = 0;
 
     for k = 1:numel(subs)
         sub    = subs(k).name;
@@ -89,7 +90,7 @@ if DO_IMPORT_ALL
         if ~FORCE_REIMPORT && isfile(marker)
             n_skipped = n_skipped + 1;
             logs(end+1,:) = {sub, 'SKIP(marker)'}; %#ok<SAGROW>
-            fprintf('  · %-26s  (marcado como processado) \n', sub);
+            fprintf('  · %-30s  (marcado como processado) \n', sub);
             continue
         end
 
@@ -111,8 +112,9 @@ if DO_IMPORT_ALL
             if ~isfile(fullfile(subdir,need{q})), ok=false; miss{end+1}=need{q}; end %#ok<AGROW>
         end
         if ~ok
+            n_missing = n_missing + 1;
             logs(end+1,:) = {sub, sprintf('FALTANDO: %s', strjoin(miss,', '))}; %#ok<SAGROW>
-            fprintf('  - %-26s faltam %d arquivo(s)\n', sub, numel(miss));
+            fprintf('  - %-30s faltam %d arquivo(s)\n', sub, numel(miss));
             continue
         end
 
@@ -143,30 +145,30 @@ if DO_IMPORT_ALL
         isDup = T.Lx_nm==keyLx & T.Ly_nm==keyLy & T.h_nm==keyH & ...
                 T.a_nm==keyA & T.b_nm==keyB;
 
-        % Linha candidata
-        row = { keyLx, keyLy, keyH, keyA, keyB, ...
-                real(Exx), imag(Exx), real(Eyy), imag(Eyy), ...
-                abs(Exx), abs(Eyy), angle(Exx)*180/pi, angle(Eyy)*180/pi };
+        % Linha candidata (numérica)
+        r = [ keyLx, keyLy, keyH, keyA, keyB, ...
+              real(Exx), imag(Exx), real(Eyy), imag(Eyy), ...
+              abs(Exx), abs(Eyy), angle(Exx)*180/pi, angle(Eyy)*180/pi ];
 
         if any(isDup)
             switch lower(DEDUP_MODE)
                 case 'skip'
                     n_skipped = n_skipped + 1;
                     logs(end+1,:) = {sub, 'SKIP(duplicata)'}; %#ok<SAGROW>
-                    fprintf('  · %-26s duplicata → SKIP\n', sub);
+                    fprintf('  · %-30s duplicata → SKIP\n', sub);
 
                 case 'update'
-                    % atualiza a(s) linha(s) existente(s) com nova medição
-                    T{isDup, :} = row;
-                    n_updated = n_updated + nnz(isDup);
+                    ndup = nnz(isDup);
+                    T{isDup, :} = repmat(r, ndup, 1);
+                    n_updated = n_updated + ndup;
                     logs(end+1,:) = {sub, 'UPDATE(duplicata)'}; %#ok<SAGROW>
-                    fprintf('  * %-26s duplicata → UPDATE\n', sub);
+                    fprintf('  * %-30s duplicata → UPDATE (%d)\n', sub, ndup);
             end
         else
             % adiciona
-            T = [T; row]; %#ok<AGROW>
+            T = [T; array2table(r, 'VariableNames', T.Properties.VariableNames)]; %#ok<AGROW>
             n_added = n_added + 1;
-            fprintf('  + %-26s Exx∠=%6.1f° |Exx|=%.2f  Eyy∠=%6.1f° |Eyy|=%.2f  %s\n', ...
+            fprintf('  + %-30s Exx∠=%6.1f° |Exx|=%.2f  Eyy∠=%6.1f° |Eyy|=%.2f  %s\n', ...
                 sub, angle(Exx)*180/pi, abs(Exx), angle(Eyy)*180/pi, abs(Eyy), warn);
         end
 
@@ -187,15 +189,25 @@ if DO_IMPORT_ALL
     T = T(ia,:);
     writetable(T, LIB_CSV);
 
-    % log
+    % log detalhado
     if ~isempty(logs)
         Tlog = cell2table(logs, 'VariableNames',{'subfolder','notes'});
         writetable(Tlog, LOG_CSV);
     end
 
-    fprintf('  => ADD=%d  SKIP=%d  UPDATE=%d | total na lib: %d\n', n_added, n_skipped, n_updated, height(T));
-end
+    % resumo no relatório
+    fid = fopen(REPORT_TXT,'a');
+    if fid>0
+        fprintf(fid,'\n[A] Import summary %s\n', datestr(now));
+        fprintf(fid,'  RAW_DIR: %s\n', RAW_DIR);
+        fprintf(fid,'  ADD=%d  SKIP=%d  UPDATE=%d  MISSING=%d | total lib: %d\n', ...
+            n_added, n_skipped, n_updated, n_missing, height(T));
+        fclose(fid);
+    end
 
+    fprintf('  => ADD=%d  SKIP=%d  UPDATE=%d  MISSING=%d | total na lib: %d\n', ...
+        n_added, n_skipped, n_updated, n_missing, height(T));
+end
 
 %% =============================== [B] GS ==================================
 if DO_RUN_GS
@@ -214,7 +226,7 @@ if DO_RUN_GS
     xg = linspace(-10,10,N); [X,Y] = meshgrid(xg,xg);
     sigma = 2;
     input_amp = exp(-(X.^2+Y.^2)/(2*sigma^2));  % |I_in|
-    A = fftshift(ifft2(fftshift(Target)));     % chute inicial
+    A = fftshift(ifft2(fftshift(Target)));      % chute inicial
 
     errorF = zeros(iter,1); pearson = zeros(iter,1); edgeR = zeros(iter,1); epss=1e-12;
 
@@ -256,7 +268,7 @@ if DO_RUN_GS
     end
 
     % Curvas de convergência
-    figure('Name','Convergência');
+    fconv = figure('Name','Convergência');
     yyaxis left;  plot(errorF,'LineWidth',1.2); ylabel('Erro (Frobenius)');
     yyaxis right; plot(pearson,'LineWidth',1.2); hold on
     plot(edgeR,'--','LineWidth',1.1); ylabel('r (Pearson / Edge)')
@@ -264,7 +276,7 @@ if DO_RUN_GS
     title('Convergência: erro × Pearson × borda');
 
     % Resultado final
-    figure('Name','Reconstrução final'); imshow(abs(C),[]); title(sprintf('|C| após %d iterações', numel(pearson)));
+    ffinal = figure('Name','Reconstrução final'); imshow(abs(C),[]); title(sprintf('|C| após %d iterações', numel(pearson)));
 
     % Salvas
     Ttbl = table((1:length(errorF)).', errorF(:), pearson(:), edgeR(:), ...
@@ -277,11 +289,11 @@ if DO_RUN_GS
     save(fullfile(PROC_DIR,'phase_map.mat'),'phase_in','dx','dy','lambda','z','NA');
 
     if SAVE_FIGS
-        saveas(gcf, fullfile(PROC_DIR,'recon_final.png'));
+        saveas(fconv, fullfile(PROC_DIR,'convergencia.png'));
+        saveas(ffinal, fullfile(PROC_DIR,'recon_final.png'));
         try, saveas(fig1, fullfile(PROC_DIR,'target.png')); end %#ok<*TRYNC>
         try, saveas(fig2, fullfile(PROC_DIR,'input_amp.png')); end
         try, saveas(fig3, fullfile(PROC_DIR,'steps_cycle1.png')); end
-        saveas(findobj('Name','Convergência'), fullfile(PROC_DIR,'convergencia.png'));
     end
 
     % Por ora, mesmo mapa de fase para x e y (pode separar depois)
@@ -302,14 +314,13 @@ if DO_PICK
     idx = pick_meta_atoms_local(phix, phiy, tx, ty);
     save(fullfile(PROC_DIR,'chosen_indices.mat'),'idx','lib');
 
-    % Visual: se só há 1 meta-átomo, avise
+    % Visual
     nlib = size(lib,1);
     if nlib==1
         figure; imagesc(idx); axis image off; colormap(gca,lines(1)); colorbar;
         title('Índice do meta-átomo escolhido (biblioteca com 1 elemento)');
         fprintf('  [AVISO] Biblioteca tem 1 meta-átomo; todos os pixels usam o mesmo índice.\n');
     else
-        % mapear índices → cores distintas
         uidx = unique(idx(:));
         cmap = parula(max(uidx));
         figure; imagesc(idx); axis image off; colormap(gca,cmap); colorbar;
@@ -330,6 +341,7 @@ fprintf('\n✅ Concluído.\n');
 
 % ============================ FUNÇÕES LOCAIS ==============================
 function c = read_cst_scalar_complex(fname)
+    % Lê arquivo ASCII de curva do CST e retorna o último ponto como complexo.
     raw = fileread(fname); raw = strrep(raw, ',', '.');
     L = regexp(raw,'\r\n|\n','split'); data = [];
     for i = 1:numel(L)
@@ -341,18 +353,24 @@ function c = read_cst_scalar_complex(fname)
     end
     if isempty(data), error('Sem dados numéricos em %s', fname); end
     v = data(end,:);
+    % Heurística: [Mag,PhaseDeg] OU [Re,Im] no final
     if numel(v)==2
         c = v(1) + 1i*v(2);
     elseif numel(v)>=3 && abs(v(end-1))<=2 && abs(v(end))<=2
+        % última dupla parece |Re|,|Im| (<=2 ~ coerente para S)
         c = v(end-1) + 1i*v(end);
     else
         Mag = v(end-1); Ph = v(end);
-        if Mag>=0 && abs(Ph)<=360, c = Mag.*exp(1i*deg2rad(Ph));
-        else, c = v(end-1) + 1i*v(end); end
+        if Mag>=0 && abs(Ph)<=360
+            c = Mag.*exp(1i*deg2rad(Ph));
+        else
+            c = v(end-1) + 1i*v(end);
+        end
     end
 end
 
 function Uz = propagateASM_local(U0, dx, dy, lambda, z, NA)
+    % ASM com supressão de evanescentes e corte por NA
     [Ny, Nx] = size(U0); k = 2*pi/lambda;
     fx = (-Nx/2:Nx/2-1) / (Nx*dx); fy = (-Ny/2:Ny/2-1) / (Ny*dy);
     [FX, FY] = meshgrid(fx, fy); f2 = FX.^2 + FY.^2;
@@ -364,6 +382,7 @@ function Uz = propagateASM_local(U0, dx, dy, lambda, z, NA)
 end
 
 function idx = pick_meta_atoms_local(phix, phiy, tx, ty)
+    % Casamento por menor erro quadrático entre alvos unitários e respostas tx/ty
     [Ny,Nx] = size(phix);  Tx = exp(1i*phix);  Ty = exp(1i*phiy);
     idx = zeros(Ny,Nx);
     for j = 1:Ny
