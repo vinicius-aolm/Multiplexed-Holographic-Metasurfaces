@@ -11,3 +11,18 @@ Biblioteca: 1 meta-atomos | Cobertura fase (Exx)=6%  (Eyy)=6% | Mediana |Exx|=0.
   RAW_DIR: C:\Users\vinicius23011\MATLAB\Projects\TCC\library_raw
   ADD=0  SKIP=1  UPDATE=0  MISSING=1 | total lib: 1
 Biblioteca: 1 meta-atomos | Cobertura fase (Exx)=6%  (Eyy)=6% | Mediana |Exx|=0.99  |Eyy|=0.93
+
+[A] Import summary 27-Aug-2025 04:25:10
+  RAW_DIR: C:\Users\vinicius23011\MATLAB\Projects\TCC\library_raw
+  ADD=0  SKIP=64  UPDATE=0  MISSING=0 | total lib: 1
+Biblioteca: 1 meta-atomos | Cobertura fase (Exx)=6%  (Eyy)=6% | Mediana |Exx|=0.99  |Eyy|=0.93
+
+[A] Import summary 27-Aug-2025 04:26:03
+  RAW_DIR: C:\Users\vinicius23011\MATLAB\Projects\TCC\library_raw
+  ADD=0  SKIP=64  UPDATE=0  MISSING=0 | total lib: 1
+Biblioteca: 1 meta-atomos | Cobertura fase (Exx)=6%  (Eyy)=6% | Mediana |Exx|=0.99  |Eyy|=0.93
+
+[A] Import summary 27-Aug-2025 04:32:17
+  RAW_DIR: C:\Users\vinicius23011\MATLAB\Projects\TCC\library_raw
+  ADD=64  SKIP=0  UPDATE=0  MISSING=0 | total lib: 65
+Biblioteca: 65 meta-atomos | Cobertura fase (Exx)=78%  (Eyy)=78% | Mediana |Exx|=0.89  |Eyy|=0.89
