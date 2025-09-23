@@ -1,0 +1,1 @@
+Par recomendado: t_air=1200 nm, t_sub=2000 nm  (MWS-sweep-01-0009.s4p (tair=1200,tsub=2000))
