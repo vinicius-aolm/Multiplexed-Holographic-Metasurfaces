@@ -1,0 +1,1 @@
+A frequência que foi rodada no phase matching foi 281750.0GHz pois não há a frequência exata de 281760.GHz na simulação
