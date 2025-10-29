@@ -1,0 +1,82 @@
+{
+  "input": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\Bibliotecas\\27x27_CaixaColada",
+  "rows_total": 37179,
+  "rows_filtered": 3645,
+  "center_freq_ghz": 281760.0,
+  "tol_ghz": 5.0,
+  "tag": "27x27_CaixaColada",
+  "library_csv": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\results\\27x27_CaixaColada_biblioteca.csv",
+  "library_parquet": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\results\\27x27_CaixaColada_biblioteca.parquet",
+  "TE": {
+    "available": true,
+    "metrics": {
+      "mode": "S24",
+      "features": [
+        "L_x",
+        "L_y",
+        "frequencia_ghz"
+      ],
+      "n_train": 2916,
+      "n_test": 729,
+      "train": {
+        "r2_re": 0.9784093336644177,
+        "r2_im": 0.9799791752890177,
+        "r2_agg": 0.9794952256774826,
+        "rmse_re": 0.08986512664595199,
+        "rmse_im": 0.08711894502103429,
+        "rmse_agg": 0.1251617016849443,
+        "mae_re": 0.046821011111665124,
+        "mae_im": 0.04491909483041176,
+        "mae_agg": 0.04587005297103844
+      },
+      "test": {
+        "r2_re": 0.9785177331924869,
+        "r2_im": 0.9801374972347364,
+        "r2_agg": 0.9797692527148666,
+        "rmse_re": 0.09206093859603293,
+        "rmse_im": 0.08389710068705772,
+        "rmse_agg": 0.12455496745965954,
+        "mae_re": 0.04680112763818286,
+        "mae_im": 0.04197980949940915,
+        "mae_agg": 0.044390468568796006
+      }
+    },
+    "pipeline_path": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\results\\27x27_CaixaColada_s24.joblib"
+  },
+  "TM": {
+    "available": true,
+    "metrics": {
+      "mode": "S13",
+      "features": [
+        "L_x",
+        "L_y",
+        "frequencia_ghz"
+      ],
+      "n_train": 2916,
+      "n_test": 729,
+      "train": {
+        "r2_re": 0.9832238734125465,
+        "r2_im": 0.9859150225076064,
+        "r2_agg": 0.9848011534073834,
+        "rmse_re": 0.07974026088274491,
+        "rmse_im": 0.07301418235671552,
+        "rmse_agg": 0.10811836121060994,
+        "mae_re": 0.04396758137052918,
+        "mae_im": 0.041370731250985206,
+        "mae_agg": 0.0426691563107572
+      },
+      "test": {
+        "r2_re": 0.9819861501754349,
+        "r2_im": 0.9835280864432834,
+        "r2_agg": 0.9830766866140713,
+        "rmse_re": 0.08212734615241271,
+        "rmse_im": 0.07661996745204212,
+        "rmse_agg": 0.1123188336762371,
+        "mae_re": 0.04549794000453758,
+        "mae_im": 0.044965473581996034,
+        "mae_agg": 0.04523170679326681
+      }
+    },
+    "pipeline_path": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\results\\27x27_CaixaColada_s13.joblib"
+  }
+}
