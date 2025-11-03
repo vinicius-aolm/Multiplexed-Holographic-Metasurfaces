@@ -205,3 +205,15 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Exclude heavy data and results, keep only .gitkeep markers
+data/raw/**            # ignore all raw simulation files
+!data/raw/.gitkeep     # but keep folder structure
+data/processed/**      # processed data and logs
+!data/processed/.gitkeep
+data/targets/**        # target images
+!data/targets/.gitkeep
+results/**             # output results (plots, CSVs)
+!results/.gitkeep
+logs/**                # execution logs
+!logs/.gitkeep
