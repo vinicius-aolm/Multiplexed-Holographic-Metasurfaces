@@ -2,14 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Touchstone File Parser for Metasurface Library Generation.
-
-This module provides functions to parse Touchstone (.ts) files containing
-S-parameter data for metasurface nanopillars and convert them into
-structured pandas DataFrames.
+Analisador de Arquivos Touchstone para Geração de Biblioteca de Metassuperfície.
 
 Este módulo fornece funções para analisar arquivos Touchstone (.ts) contendo
-dados de parâmetros S para nanopilares de metassuperfície e convertê-los em
+dados de parâmetros S de nanopilares de metassuperfície e convertê-los em
 DataFrames pandas estruturados.
 """
 
@@ -24,38 +20,36 @@ try:
     import skrf as rf
 except ImportError:
     rf = None
-    logging.warning("scikit-rf not available. S-parameter parsing will be limited.")
+    logging.warning("scikit-rf não disponível. Análise de parâmetros S será limitada.")
 
-# Configure logging
+# Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Regular expressions for parsing
+# Expressões regulares para análise
 _PARAM_ANY_RE = re.compile(r"Parameters\s*=\s*\{(?P<body>.+?)\}", re.IGNORECASE)
 _NUM_PORTS_RE = re.compile(r"^\[Number of Ports\]\s*(\d+)\s*$", re.IGNORECASE)
 
 
 def parse_touchstone_params(path: str, max_header_lines: int = 200) -> dict:
     """
-    Parse parameter definitions from Touchstone file header.
-    
-    Scans the beginning of the file (up to max_header_lines or until '[Network Data]')
-    searching for a line containing 'Parameters = { ... }'. Preserves original key names.
-    Accepts ';' or ',' as separators between K=V pairs.
-    
     Analisa definições de parâmetros do cabeçalho do arquivo Touchstone.
     
-    Parameters / Parâmetros:
-        path: Path to Touchstone file / Caminho para arquivo Touchstone
-        max_header_lines: Maximum lines to scan / Máximo de linhas para escanear
+    Varre o início do arquivo (até max_header_lines ou até '[Network Data]')
+    procurando por uma linha que contenha 'Parameters = { ... }'. Preserva nomes
+    originais das chaves. Aceita ';' ou ',' como separadores entre pares K=V.
+    
+    Args:
+        path: Caminho para arquivo Touchstone
+        max_header_lines: Número máximo de linhas para escanear
         
-    Returns / Retorna:
-        Dictionary with parsed parameters / Dicionário com parâmetros analisados
+    Returns:
+        Dicionário com parâmetros analisados
         
-    Examples / Exemplos:
+    Examples:
         >>> params = parse_touchstone_params("nanopilar_001.ts")
         >>> print(params.get('L_x'), params.get('L_y'))
         400.0 500.0
@@ -67,16 +61,16 @@ def parse_touchstone_params(path: str, max_header_lines: int = 200) -> dict:
                 line = raw.strip()
                 if i > max_header_lines:
                     break
-                # Stop when entering data section
+                # Parar ao entrar na seção de dados
                 if line.startswith("[Network Data]"):
                     break
-                # Try to capture block within { ... }
+                # Tentar capturar bloco dentro de { ... }
                 m = _PARAM_ANY_RE.search(line)
                 if not m:
                     continue
                 body = m.group("body")
 
-                # Try semicolon separator first, then comma
+                # Separadores: primeiro tenta ';', depois ','
                 parts = [p.strip() for p in body.split(";") if p.strip()]
                 if len(parts) <= 1:
                     parts = [p.strip() for p in body.split(",") if p.strip()]
@@ -85,36 +79,34 @@ def parse_touchstone_params(path: str, max_header_lines: int = 200) -> dict:
                     if "=" not in pair:
                         continue
                     k, v = pair.split("=", 1)
-                    k = k.strip()  # preserve names like 'L_x', 'L_y'
+                    k = k.strip()  # preserva nomes como 'L_x', 'L_y'
                     v = v.strip()
-                    # Remove possible residual comments after value
+                    # Remove possíveis comentários residuais após o valor
                     v = re.split(r"\s*!|\s+#", v)[0].strip()
                     try:
                         v = float(v)
                     except Exception:
-                        # If conversion to float fails, keep value as string (some parameters may be non-numeric)
+                        # Se conversão para float falhar, manter como string (alguns parâmetros podem ser não-numéricos)
                         pass
                     params[k] = v
-                # Found parameter line; can exit
+                # Encontrou linha de parâmetros; pode sair
                 break
     except Exception as e:
-        logger.warning(f"Error parsing parameters from {path}: {e}")
+        logger.warning(f"Erro ao analisar parâmetros de {path}: {e}")
     return params
 
 
 def parse_number_of_ports_from_header(path: str) -> Optional[int]:
     """
-    Extract number of ports from Touchstone file header.
-    
-    Searches for '[Number of Ports]' declaration in the header section.
-    
     Extrai número de portas do cabeçalho do arquivo Touchstone.
     
-    Parameters / Parâmetros:
-        path: Path to Touchstone file / Caminho para arquivo Touchstone
+    Procura pela declaração '[Number of Ports]' na seção do cabeçalho.
+    
+    Args:
+        path: Caminho para arquivo Touchstone
         
-    Returns / Retorna:
-        Number of ports or None if not found / Número de portas ou None se não encontrado
+    Returns:
+        Número de portas ou None se não encontrado
     """
     try:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
@@ -125,7 +117,7 @@ def parse_number_of_ports_from_header(path: str) -> Optional[int]:
                 if line.startswith("[Network Data]"):
                     break
     except Exception as e:
-        logger.warning(f"Error parsing port count from {path}: {e}")
+        logger.warning(f"Erro ao analisar contagem de portas de {path}: {e}")
     return None
 
 
@@ -135,81 +127,77 @@ def touchstone_to_dataframe(
     pattern: str = "*.ts"
 ) -> pd.DataFrame:
     """
-    Convert Touchstone files in a folder to a structured DataFrame.
+    Converte arquivos Touchstone de uma pasta em um DataFrame estruturado.
     
-    Reads .ts files and generates a DataFrame with:
-      - Metadata: filename, path, id_nanopilar, frequencia_hz/ghz, nports
-      - Header parameters: original names (e.g., 'L_x', 'L_y', 'Lambda', 'H')
-      - S-parameters: Sij_real/Sij_imag according to nports (1, 2, or 4)
+    Lê arquivos .ts e gera um DataFrame com:
+      - Metadados: nome_arquivo, caminho, id_nanopilar, frequencia_hz/ghz, nports
+      - Parâmetros do cabeçalho: nomes originais (ex.: 'L_x', 'L_y', 'Lambda', 'H')
+      - Parâmetros S: Sij_real/Sij_imag conforme nports (1, 2 ou 4)
     
-    Converts arquivos Touchstone em uma pasta para um DataFrame estruturado.
-    
-    Parameters / Parâmetros:
-        folder: Directory containing Touchstone files / Diretório com arquivos Touchstone
-        recursive: Search subdirectories / Buscar subdiretórios
-        pattern: File pattern to match / Padrão de arquivo para corresponder
+    Args:
+        folder: Diretório contendo arquivos Touchstone
+        recursive: Buscar em subdiretórios
+        pattern: Padrão de arquivo para corresponder
         
-    Returns / Retorna:
-        DataFrame with parsed data, sorted by id_nanopilar and frequency
+    Returns:
         DataFrame com dados analisados, ordenados por id_nanopilar e frequência
         
-    Raises / Exceções:
-        ValueError: If folder doesn't exist or no valid files found
-                   Se pasta não existe ou nenhum arquivo válido encontrado
+    Raises:
+        ValueError: Se pasta não existe ou nenhum arquivo válido encontrado
     """
     if not rf:
         raise ImportError(
-            "scikit-rf is required for Touchstone parsing. "
-            "Install with: pip install scikit-rf"
+            "scikit-rf é necessário para análise Touchstone. "
+            "Instale com: pip install scikit-rf"
         )
     
     folder_path = Path(folder)
     if not folder_path.is_dir():
-        raise ValueError(f"Folder not found: {folder}")
+        raise ValueError(f"Pasta não encontrada: {folder}")
 
-    logger.info(f"Searching for Touchstone files in {folder} (recursive={recursive})...")
+    logger.info(f"Procurando arquivos Touchstone em {folder} (recursive={recursive})...")
     
     data = []
     
-    # Collect files
+    # Coletar arquivos
     if recursive:
         files = list(folder_path.rglob(pattern))
     else:
         files = list(folder_path.glob(pattern))
     
     if not files:
-        raise ValueError(f"No files matching pattern '{pattern}' found in {folder}")
+        raise ValueError(f"Nenhum arquivo correspondendo ao padrão '{pattern}' encontrado em {folder}")
     
-    logger.info(f"Found {len(files)} Touchstone files")
+    logger.info(f"Encontrados {len(files)} arquivos Touchstone")
     
     for file_path in files:
         name_arch = file_path.name
         path_ = str(file_path)
         root = file_path.stem
         
-        # Extract ID from filename (first number found)
+        # Extrair ID do nome do arquivo (primeiro número encontrado)
         m = re.search(r"(\d+)", root)
         id_nanopilar = int(m.group(1)) if m else -1
 
-        logger.info(f"Reading file: {name_arch} (ID:{id_nanopilar})...")
+        logger.info(f"Lendo arquivo: {name_arch} (ID:{id_nanopilar})...")
 
-        # 1) Parse header parameters
+        # 1) Analisar parâmetros do cabeçalho
         params = parse_touchstone_params(path_)
 
-        # 2) Read network with scikit-rf
+        # 2) Ler rede com scikit-rf
         try:
             network = rf.Network(path_)
             nports = int(network.nports)
         except Exception as e:
-            logger.warning(f"  [WARN] scikit-rf failed on '{name_arch}': {e}")
+            logger.warning(f"  [AVISO] scikit-rf falhou em '{name_arch}': {e}")
             nports = parse_number_of_ports_from_header(path_) or 0
             if nports == 0:
-                logger.error(f"  [ERROR] Could not infer nports. Skipping file.")
+                logger.error(f"  [ERRO] Não foi possível inferir nports. Pulando arquivo.")
                 continue
-            logger.error(f"  [ERROR] No S-parameter data available. Skipping.")
+            logger.error(f"  [ERRO] Sem dados de parâmetros S disponíveis. Pulando.")
             continue
 
-        # 3) Create row for each frequency
+        # 3) Criar linha para cada frequência
         for i, f_hz in enumerate(network.f):
             row = {
                 "arquivo": name_arch,
@@ -220,16 +208,16 @@ def touchstone_to_dataframe(
                 "nports": nports,
             }
 
-            # Inject ALL header parameters
+            # Injetar TODOS os parâmetros do cabeçalho
             for k, v in params.items():
                 row[k] = v
 
-            # ENSURE L_x, L_y, H columns exist (even if NaN)
+            # GARANTIR que colunas L_x, L_y, H existam (mesmo que NaN)
             for key in ("L_x", "L_y", "H"):
                 if key not in row:
                     row[key] = np.nan
 
-            # S-parameters based on port count
+            # Parâmetros S baseados na contagem de portas
             if nports == 1:
                 s11 = network.s[i, 0, 0]
                 row["S11_real"] = float(np.real(s11))
@@ -260,36 +248,35 @@ def touchstone_to_dataframe(
             data.append(row)
 
     if not data:
-        raise ValueError("No valid Touchstone files could be parsed")
+        raise ValueError("Nenhum arquivo Touchstone válido pôde ser analisado")
 
     df = pd.DataFrame(data)
 
-    # Sort by id_nanopilar and frequency
+    # Ordenar por id_nanopilar e frequência
     sort_cols = [c for c in ["id_nanopilar", "frequencia_hz"] if c in df.columns]
     if sort_cols:
         df = df.sort_values(sort_cols, ignore_index=True)
 
-    logger.info(f"Successfully created DataFrame with {len(df)} rows from {len(files)} files")
+    logger.info(f"DataFrame criado com sucesso: {len(df)} linhas de {len(files)} arquivos")
     
     return df
 
 
 if __name__ == "__main__":
-    # Example usage / Exemplo de uso
+    # Exemplo de uso
     import sys
     
     if len(sys.argv) < 2:
-        print("Usage: python generate_df.py <folder_path>")
         print("Uso: python generate_df.py <caminho_pasta>")
         sys.exit(1)
     
     folder = sys.argv[1]
     try:
         df = touchstone_to_dataframe(folder)
-        print("\n--- DataFrame created successfully! ---")
-        print(f"Shape: {df.shape}")
-        print(f"\nColumns: {df.columns.tolist()}")
-        print(f"\nFirst rows:\n{df.head()}")
+        print("\n--- DataFrame criado com sucesso! ---")
+        print(f"Forma: {df.shape}")
+        print(f"\nColunas: {df.columns.tolist()}")
+        print(f"\nPrimeiras linhas:\n{df.head()}")
     except Exception as e:
-        logger.error(f"Failed to process folder: {e}")
+        logger.error(f"Falha ao processar pasta: {e}")
         sys.exit(1)

@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Phase Matching and Heatmap Generation for Metasurface Libraries.
-
-This module provides functions to compute heatmaps of amplitude and phase
-distributions and perform phase matching optimization to find the best
-metasurface layout for target phase profiles.
+Casamento de Fase e Geração de Mapas de Calor para Bibliotecas de Metassuperfície.
 
 Este módulo fornece funções para calcular mapas de calor de distribuições
 de amplitude e fase e realizar otimização de casamento de fase para encontrar
@@ -22,7 +18,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 from scipy.spatial import KDTree
 
-# Configure logging
+# Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -39,32 +35,28 @@ def compute_heatmaps(
     bins_y: int = 100
 ) -> Dict[str, np.ndarray]:
     """
-    Compute 2D heatmaps for specified fields over L_x and L_y parameter space.
-    
-    Creates interpolated grid representations of amplitude and phase distributions
-    for TE and TM polarizations across the metasurface parameter space.
-    
     Calcula mapas de calor 2D para campos especificados sobre o espaço de parâmetros L_x e L_y.
     
-    Parameters / Parâmetros:
-        df: DataFrame with library data / DataFrame com dados da biblioteca
-        x: Column name for x-axis (typically L_x) / Nome da coluna para eixo x (tipicamente L_x)
-        y: Column name for y-axis (typically L_y) / Nome da coluna para eixo y (tipicamente L_y)
-        fields: Field names to compute heatmaps for / Nomes dos campos para calcular mapas
-        bins_x: Number of bins in x direction / Número de bins na direção x
-        bins_y: Number of bins in y direction / Número de bins na direção y
+    Cria representações de grade interpoladas de distribuições de amplitude e fase
+    para polarizações TE e TM através do espaço de parâmetros da metassuperfície.
+    
+    Args:
+        df: DataFrame com dados da biblioteca
+        x: Nome da coluna para eixo x (tipicamente L_x)
+        y: Nome da coluna para eixo y (tipicamente L_y)
+        fields: Nomes dos campos para calcular mapas
+        bins_x: Número de bins na direção x
+        bins_y: Número de bins na direção y
         
-    Returns / Retorna:
-        Dictionary with field names as keys and 2D arrays as values
-        Dicionário com nomes de campos como chaves e arrays 2D como valores
-        Also includes 'x_grid', 'y_grid' for coordinates
-        Também inclui 'x_grid', 'y_grid' para coordenadas
+    Returns:
+        Dicionário com nomes de campos como chaves e arrays 2D como valores.
+        Também inclui 'x_grid', 'y_grid' para coordenadas.
         
-    Examples / Exemplos:
+    Examples:
         >>> heatmaps = compute_heatmaps(df, fields=("phase_TE", "amp_TE"))
         >>> plt.imshow(heatmaps['phase_TE'], extent=[...])
     """
-    # Check required columns
+    # Verificar colunas necessárias
     missing_cols = []
     for col in [x, y] + list(fields):
         if col not in df.columns:
@@ -72,19 +64,19 @@ def compute_heatmaps(
     
     if missing_cols:
         raise ValueError(
-            f"Missing required columns: {missing_cols}\n"
-            f"Available columns: {df.columns.tolist()}"
+            f"Colunas necessárias faltando: {missing_cols}\n"
+            f"Colunas disponíveis: {df.columns.tolist()}"
         )
     
-    logger.info(f"Computing heatmaps for {len(fields)} fields over {x} x {y}")
+    logger.info(f"Calculando mapas de calor para {len(fields)} campos sobre {x} x {y}")
     
-    # Remove NaN values
+    # Remover valores NaN
     df_clean = df[[x, y] + list(fields)].dropna()
     
     if len(df_clean) == 0:
-        raise ValueError("No valid data points after removing NaN values")
+        raise ValueError("Nenhum ponto de dados válido após remoção de valores NaN")
     
-    # Create grid
+    # Criar grade
     x_min, x_max = df_clean[x].min(), df_clean[x].max()
     y_min, y_max = df_clean[y].min(), df_clean[y].max()
     
@@ -92,10 +84,10 @@ def compute_heatmaps(
     y_grid = np.linspace(y_min, y_max, bins_y)
     X_grid, Y_grid = np.meshgrid(x_grid, y_grid)
     
-    # Extract points
+    # Extrair pontos
     points = df_clean[[x, y]].values
     
-    # Interpolate each field
+    # Interpolar cada campo
     result = {
         'x_grid': x_grid,
         'y_grid': y_grid,
@@ -104,10 +96,10 @@ def compute_heatmaps(
     }
     
     for field in fields:
-        logger.info(f"  Interpolating {field}...")
+        logger.info(f"  Interpolando {field}...")
         values = df_clean[field].values
         
-        # Use linear interpolation
+        # Usar interpolação linear
         field_grid = griddata(
             points, values, (X_grid, Y_grid),
             method='linear', fill_value=np.nan
@@ -115,7 +107,7 @@ def compute_heatmaps(
         
         result[field] = field_grid
     
-    logger.info(f"Heatmaps computed successfully ({bins_x}x{bins_y} grid)")
+    logger.info(f"Mapas de calor calculados com sucesso (grade {bins_x}x{bins_y})")
     
     return result
 
@@ -129,43 +121,30 @@ def perform_phase_matching(
     target_height: Optional[float] = None
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Find optimal metasurface layout by matching target TE/TM phase profiles.
-    
-    For each pixel in the target phase maps, selects the library entry that
-    minimizes the quadratic phase error. Optionally filters by height.
-    
     Encontra layout ótimo de metassuperfície casando perfis de fase TE/TM alvo.
     
-    Parameters / Parâmetros:
-        df: Library DataFrame with phase_TE, phase_TM columns
-            DataFrame de biblioteca com colunas phase_TE, phase_TM
-        target_phase_tm: 2D array of target TM phases
-                        Array 2D de fases TM alvo
-        target_phase_te: 2D array of target TE phases
-                        Array 2D de fases TE alvo
-        use_height: Whether to prioritize matching height
-                   Se deve priorizar casamento de altura
-        height_col: Column name for height parameter
-                   Nome da coluna para parâmetro de altura
-        target_height: Target height value when use_height=True
-                      Valor de altura alvo quando use_height=True
+    Para cada pixel nos mapas de fase alvo, seleciona a entrada da biblioteca que
+    minimiza o erro de fase quadrático. Opcionalmente filtra por altura.
+    
+    Args:
+        df: DataFrame de biblioteca com colunas phase_TE, phase_TM
+        target_phase_tm: Array 2D de fases TM alvo
+        target_phase_te: Array 2D de fases TE alvo
+        use_height: Se deve priorizar casamento de altura
+        height_col: Nome da coluna para parâmetro de altura
+        target_height: Valor de altura alvo quando use_height=True
                       
-    Returns / Retorna:
-        Tuple of (layout_lx, layout_ly, error_map_rms) where:
-        - layout_lx: 2D array of selected L_x values
-        - layout_ly: 2D array of selected L_y values
-        - error_map_rms: 2D array of RMS phase errors
-        
+    Returns:
         Tupla de (layout_lx, layout_ly, error_map_rms) onde:
         - layout_lx: Array 2D de valores L_x selecionados
         - layout_ly: Array 2D de valores L_y selecionados
         - error_map_rms: Array 2D de erros RMS de fase
         
-    Examples / Exemplos:
+    Examples:
         >>> lx, ly, err = perform_phase_matching(df, phase_tm, phase_te)
-        >>> print(f"Mean error: {err.mean():.4f} rad")
+        >>> print(f"Erro médio: {err.mean():.4f} rad")
     """
-    # Check required columns
+    # Verificar colunas necessárias
     required = ["phase_TE", "phase_TM", "L_x", "L_y"]
     if use_height:
         required.append(height_col)
@@ -173,81 +152,81 @@ def perform_phase_matching(
     missing_cols = [col for col in required if col not in df.columns]
     if missing_cols:
         raise ValueError(
-            f"Missing required columns: {missing_cols}\n"
-            f"Available columns: {df.columns.tolist()}"
+            f"Colunas necessárias faltando: {missing_cols}\n"
+            f"Colunas disponíveis: {df.columns.tolist()}"
         )
     
-    # Validate target shapes
+    # Validar formas dos alvos
     if target_phase_te.shape != target_phase_tm.shape:
         raise ValueError(
-            f"Target phase shapes must match: "
+            f"Formas das fases alvo devem corresponder: "
             f"TE={target_phase_te.shape}, TM={target_phase_tm.shape}"
         )
     
-    logger.info(f"Performing phase matching for {target_phase_te.shape} pixels")
-    logger.info(f"Library size: {len(df)} entries")
+    logger.info(f"Realizando casamento de fase para {target_phase_te.shape} pixels")
+    logger.info(f"Tamanho da biblioteca: {len(df)} entradas")
     
-    # Filter by height if requested
+    # Filtrar por altura se solicitado
     if use_height:
         if target_height is None:
-            # Use median height from library
+            # Usar altura mediana da biblioteca
             target_height = df[height_col].median()
-            logger.info(f"Using median height: {target_height}")
+            logger.info(f"Usando altura mediana: {target_height}")
         
-        # Filter entries within 10% of target height
+        # Filtrar entradas dentro de 10% da altura alvo
         tolerance = 0.1 * target_height
         df_filtered = df[
             (df[height_col] >= target_height - tolerance) &
             (df[height_col] <= target_height + tolerance)
         ].copy()
         
-        logger.info(f"Filtered to {len(df_filtered)} entries with H ≈ {target_height}")
+        logger.info(f"Filtrado para {len(df_filtered)} entradas com H ≈ {target_height}")
         
         if len(df_filtered) == 0:
-            logger.warning("No entries match height criterion. Using full library.")
+            logger.warning("Nenhuma entrada corresponde ao critério de altura. Usando biblioteca completa.")
             df_filtered = df.copy()
     else:
         df_filtered = df.copy()
     
-    # Remove NaN values
+    # Remover valores NaN
     df_filtered = df_filtered.dropna(subset=required)
     
     if len(df_filtered) == 0:
-        raise ValueError("No valid library entries after filtering")
+        raise ValueError("Nenhuma entrada válida da biblioteca após filtragem")
     
-    # Build KDTree for fast nearest-neighbor lookup
+    # Construir KDTree para busca rápida de vizinho mais próximo
     phase_points = df_filtered[["phase_TE", "phase_TM"]].values
     tree = KDTree(phase_points)
     
-    # Initialize output arrays
+    # Inicializar arrays de saída
     rows, cols = target_phase_te.shape
     layout_lx = np.zeros((rows, cols))
     layout_ly = np.zeros((rows, cols))
     error_map_rms = np.zeros((rows, cols))
     
-    # Match each pixel
+    # Casar cada pixel
     for i in range(rows):
         if i % 10 == 0:
-            logger.info(f"  Processing row {i+1}/{rows}...")
+            logger.info(f"  Processando linha {i+1}/{rows}...")
         
         for j in range(cols):
             target_point = np.array([target_phase_te[i, j], target_phase_tm[i, j]])
             
-            # Find nearest neighbor
+            # Encontrar vizinho mais próximo
             distance, idx = tree.query(target_point)
             
-            # Get corresponding L_x, L_y
+            # Obter L_x, L_y correspondentes
             best_match = df_filtered.iloc[idx]
             layout_lx[i, j] = best_match["L_x"]
             layout_ly[i, j] = best_match["L_y"]
             
-            # Compute RMS error
+            # Calcular erro RMS
             error_te = target_phase_te[i, j] - best_match["phase_TE"]
             error_tm = target_phase_tm[i, j] - best_match["phase_TM"]
             error_map_rms[i, j] = np.sqrt(error_te**2 + error_tm**2)
     
     mean_error = error_map_rms.mean()
-    logger.info(f"Phase matching complete. Mean RMS error: {mean_error:.6f} rad")
+    logger.info(f"Casamento de fase completo. Erro RMS médio: {mean_error:.6f} rad")
     
     return layout_lx, layout_ly, error_map_rms
 
@@ -260,20 +239,17 @@ def save_heatmap_figures(
     dpi: int = 300
 ) -> List[Path]:
     """
-    Save heatmap visualizations as PNG files.
-    
     Salva visualizações de mapas de calor como arquivos PNG.
     
-    Parameters / Parâmetros:
-        heatmaps: Dictionary from compute_heatmaps()
-                 Dicionário de compute_heatmaps()
-        out_dir: Output directory / Diretório de saída
-        prefix: Filename prefix / Prefixo do nome do arquivo
-        colormap: Matplotlib colormap name / Nome do mapa de cores
-        dpi: Resolution in dots per inch / Resolução em pontos por polegada
+    Args:
+        heatmaps: Dicionário de compute_heatmaps()
+        out_dir: Diretório de saída
+        prefix: Prefixo do nome do arquivo
+        colormap: Nome do mapa de cores do Matplotlib
+        dpi: Resolução em pontos por polegada
         
-    Returns / Retorna:
-        List of saved file paths / Lista de caminhos de arquivos salvos
+    Returns:
+        Lista de caminhos de arquivos salvos
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -284,7 +260,7 @@ def save_heatmap_figures(
     y_grid = heatmaps.get('y_grid')
     
     if x_grid is None or y_grid is None:
-        raise ValueError("Heatmaps must contain 'x_grid' and 'y_grid'")
+        raise ValueError("Mapas de calor devem conter 'x_grid' e 'y_grid'")
     
     extent = [x_grid.min(), x_grid.max(), y_grid.min(), y_grid.max()]
     
@@ -292,7 +268,7 @@ def save_heatmap_figures(
         if field_name in ['x_grid', 'y_grid', 'X_grid', 'Y_grid']:
             continue
         
-        logger.info(f"Saving heatmap for {field_name}...")
+        logger.info(f"Salvando mapa de calor para {field_name}...")
         
         fig, ax = plt.subplots(figsize=(8, 6))
         im = ax.imshow(
@@ -301,7 +277,7 @@ def save_heatmap_figures(
         )
         ax.set_xlabel('L_x')
         ax.set_ylabel('L_y')
-        ax.set_title(f'{field_name} Heatmap')
+        ax.set_title(f'Mapa de Calor {field_name}')
         plt.colorbar(im, ax=ax)
         
         out_path = out_dir / f"{prefix}_{field_name}.png"
@@ -310,10 +286,10 @@ def save_heatmap_figures(
         
         saved_files.append(out_path)
         
-        # Also save array
+        # Também salvar array
         np.save(out_dir / f"{prefix}_{field_name}.npy", field_data)
     
-    logger.info(f"Saved {len(saved_files)} heatmap figures")
+    logger.info(f"Salvos {len(saved_files)} figuras de mapas de calor")
     
     return saved_files
 
@@ -326,27 +302,25 @@ def save_layout_outputs(
     prefix: str = "layout"
 ) -> Dict[str, Path]:
     """
-    Save phase matching layout results to files.
-    
     Salva resultados de layout de casamento de fase em arquivos.
     
-    Parameters / Parâmetros:
-        layout_lx: 2D array of L_x values / Array 2D de valores L_x
-        layout_ly: 2D array of L_y values / Array 2D de valores L_y
-        error_map: 2D array of RMS errors / Array 2D de erros RMS
-        out_dir: Output directory / Diretório de saída
-        prefix: Filename prefix / Prefixo do nome do arquivo
+    Args:
+        layout_lx: Array 2D de valores L_x
+        layout_ly: Array 2D de valores L_y
+        error_map: Array 2D de erros RMS
+        out_dir: Diretório de saída
+        prefix: Prefixo do nome do arquivo
         
-    Returns / Retorna:
-        Dictionary with paths to saved files / Dicionário com caminhos dos arquivos salvos
+    Returns:
+        Dicionário com caminhos dos arquivos salvos
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     
     saved_paths = {}
     
-    # Save CSV files
-    logger.info("Saving layout arrays...")
+    # Salvar arquivos CSV
+    logger.info("Salvando arrays de layout...")
     
     lx_path = out_dir / f"{prefix}_lx.csv"
     np.savetxt(lx_path, layout_lx, delimiter=',', fmt='%.6f')
@@ -360,8 +334,8 @@ def save_layout_outputs(
     np.savetxt(error_path, error_map, delimiter=',', fmt='%.6f')
     saved_paths['error_map'] = error_path
     
-    # Save summary figure
-    logger.info("Creating summary visualization...")
+    # Salvar figura resumo
+    logger.info("Criando visualização resumo...")
     
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     
@@ -374,7 +348,7 @@ def save_layout_outputs(
     plt.colorbar(im1, ax=axes[1])
     
     im2 = axes[2].imshow(error_map, cmap='hot')
-    axes[2].set_title('RMS Error Map')
+    axes[2].set_title('Mapa de Erro RMS')
     plt.colorbar(im2, ax=axes[2])
     
     plt.tight_layout()
@@ -385,14 +359,12 @@ def save_layout_outputs(
     
     saved_paths['summary'] = summary_path
     
-    logger.info(f"Layout outputs saved to {out_dir}")
+    logger.info(f"Saídas de layout salvas em {out_dir}")
     
     return saved_paths
 
 
 if __name__ == "__main__":
-    # Example usage / Exemplo de uso
-    print("Phase matching module loaded successfully")
-    print("Use from CLI tools: run_heatmaps.py or run_phase_matching.py")
-    print("\nMódulo de casamento de fase carregado com sucesso")
+    # Exemplo de uso
+    print("Módulo de casamento de fase carregado com sucesso")
     print("Use das ferramentas CLI: run_heatmaps.py ou run_phase_matching.py")

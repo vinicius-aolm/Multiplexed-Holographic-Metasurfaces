@@ -1,13 +1,16 @@
 """
-Meta Library Module for Metasurface Data Processing.
-
-This package provides tools for:
-- Parsing Touchstone files with S-parameter data
-- Computing derived transmission parameters (amplitude, phase)
-- Generating heatmaps of parameter spaces
-- Performing phase matching optimization
-
 Módulo de Meta Biblioteca para Processamento de Dados de Metassuperfície.
+
+Este pacote fornece ferramentas para:
+- Análise de arquivos Touchstone com dados de parâmetros S
+- Cálculo de parâmetros de transmissão derivados (amplitude, fase)
+- Geração de mapas de calor de espaços de parâmetros
+- Realização de otimização de casamento de fase
+
+Módulos:
+    generate_df: Análise de arquivos Touchstone
+    clean_library: Limpeza de dados e colunas derivadas  
+    phase_matching: Mapas de calor e casamento de fase
 """
 
 from . import generate_df
