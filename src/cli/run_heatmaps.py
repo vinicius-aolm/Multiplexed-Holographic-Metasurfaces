@@ -19,12 +19,12 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 
-# Add parent directory to path for imports
+# Adicionar diretório pai to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from meta_library import phase_matching
 
-# Configure logging
+# Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_repo_root(start: Path = Path.cwd()) -> Path:
-    """Find repository root by locating .git directory."""
+    """Encontra a raiz do repositório localizando o diretório .git."""
     for parent in [start, *start.parents]:
         if (parent / ".git").exists():
             return parent
@@ -144,7 +144,7 @@ def create_readme(run_dir: Path, metadata: dict) -> Path:
     
     content = f"""# Heatmaps Generation Run
 
-## Summary / Resumo
+## Resumo / Resumo
 
 Heatmap visualizations of metasurface parameter space showing amplitude and phase distributions.
 
@@ -178,7 +178,7 @@ Visualizações de mapas de calor do espaço de parâmetros de metassuperfície 
         content += f"- `heatmap_{field}.png` - Visualization\n"
         content += f"- `heatmap_{field}.npy` - Raw data array\n"
     
-    content += f"\n## Reproducibility / Reprodutibilidade\n\n"
+    content += f"\n## Reprodutibilidade / Reprodutibilidade\n\n"
     content += f"```bash\n"
     content += f"python src/cli/run_heatmaps.py \\\n"
     content += f"  --library \"{metadata['library_file']}\" \\\n"

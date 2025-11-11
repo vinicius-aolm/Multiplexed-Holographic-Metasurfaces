@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-CLI tool for cleaning metasurface library data.
+Ferramenta CLI para limpeza de dados de biblioteca de metassuperfície.
 
-Command-line interface to add derived columns (amplitude, phase) to
-library DataFrames and perform data cleaning operations.
+Interface de linha de comando para adicionar colunas derivadas (amplitude, fase) a
+DataFrames de biblioteca e realizar operações de limpeza de dados.
 
 Interface de linha de comando para adicionar colunas derivadas (amplitude, fase)
 a DataFrames de biblioteca e realizar operações de limpeza de dados.
@@ -19,12 +19,12 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 
-# Add parent directory to path for imports
+# Adicionar diretório pai ao path para imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from meta_library import clean_library
 
-# Configure logging
+# Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_repo_root(start: Path = Path.cwd()) -> Path:
-    """Find repository root by locating .git directory."""
+    """Encontra raiz do repositório localizando diretório .git."""
     for parent in [start, *start.parents]:
         if (parent / ".git").exists():
             return parent
@@ -42,12 +42,12 @@ def find_repo_root(start: Path = Path.cwd()) -> Path:
 
 def parse_args():
     """
-    Configure command-line arguments.
+    Configura argumentos da linha de comando.
     
     Configura argumentos da linha de comando.
     """
     parser = argparse.ArgumentParser(
-        description="Clean metasurface library and add derived columns / "
+        description="Limpar biblioteca de metassuperfície e adicionar colunas derivadas / "
                    "Limpar biblioteca de metassuperfície e adicionar colunas derivadas",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -58,19 +58,19 @@ def parse_args():
         dest="input_file",
         type=Path,
         required=True,
-        help="Input CSV or Parquet file / Arquivo CSV ou Parquet de entrada"
+        help="Arquivo CSV ou Parquet de entrada / Arquivo CSV ou Parquet de entrada"
     )
     
     # Output options
     parser.add_argument(
         "--out-csv",
         type=Path,
-        help="Output CSV file path / Caminho do arquivo CSV de saída"
+        help="Caminho do arquivo CSV de saída / Caminho do arquivo CSV de saída"
     )
     parser.add_argument(
         "--out-parquet",
         type=Path,
-        help="Output Parquet file path / Caminho do arquivo Parquet de saída"
+        help="Caminho do arquivo Parquet de saída / Caminho do arquivo Parquet de saída"
     )
     
     # Processing options
@@ -124,7 +124,7 @@ def parse_args():
         "--out-root",
         type=Path,
         default=None,
-        help="Root output directory (default: results/meta_library/library_clean) / "
+        help="Diretório raiz de saída (default: results/meta_library/library_clean) / "
              "Diretório raiz de saída (padrão: results/meta_library/library_clean)"
     )
     
@@ -141,7 +141,7 @@ def create_readme(run_dir: Path, metadata: dict) -> Path:
     
     content = f"""# Library Clean Run
 
-## Summary / Resumo
+## Resumo / Resumo
 
 Library cleaned and enriched with derived columns for amplitude and phase analysis.
 
@@ -167,7 +167,7 @@ Biblioteca limpa e enriquecida com colunas derivadas para análise de amplitude 
 - **Output Rows**: {metadata['output_rows']}
 - **Added Columns**: {', '.join(metadata['added_columns'])}
 
-### Output Files / Arquivos de Saída
+### Saída Files / Arquivos de Saída
 
 """
     
@@ -176,7 +176,7 @@ Biblioteca limpa e enriquecida com colunas derivadas para análise de amplitude 
     if metadata.get('output_parquet'):
         content += f"- Parquet: `{metadata['output_parquet']}`\n"
     
-    content += f"\n## Reproducibility / Reprodutibilidade\n\n"
+    content += f"\n## Reprodutibilidade / Reprodutibilidade\n\n"
     content += f"```bash\n"
     content += f"python src/cli/run_library_clean.py \\\n"
     content += f"  --in \"{metadata['input_file']}\" \\\n"

@@ -21,12 +21,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Add parent directory to path for imports
+# Adicionar diretório pai to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from meta_library import phase_matching
 
-# Configure logging
+# Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_repo_root(start: Path = Path.cwd()) -> Path:
-    """Find repository root by locating .git directory."""
+    """Encontra a raiz do repositório localizando o diretório .git."""
     for parent in [start, *start.parents]:
         if (parent / ".git").exists():
             return parent
@@ -201,9 +201,9 @@ def create_readme(run_dir: Path, metadata: dict) -> Path:
     """
     readme_path = run_dir / "README.md"
     
-    content = f"""# Phase Matching Run
+    content = f"""# Execução de Casamento de Fase
 
-## Summary / Resumo
+## Resumo / Resumo
 
 Phase matching optimization to find optimal metasurface layout for target TE/TM phase profiles.
 
@@ -228,7 +228,7 @@ Otimização de casamento de fase para encontrar layout ótimo de metassuperfíc
         content += f"- **Target Height**: {metadata.get('target_height', 'auto')}\n"
         content += f"- **Height Column**: {metadata['height_col']}\n"
     
-    content += f"\n## Results / Resultados\n\n"
+    content += f"\n## Resultados / Resultados\n\n"
     content += f"- **Mean RMS Error**: {metadata['mean_error']:.6f} rad\n"
     content += f"- **Max RMS Error**: {metadata['max_error']:.6f} rad\n"
     content += f"- **Min RMS Error**: {metadata['min_error']:.6f} rad\n"
@@ -241,7 +241,7 @@ Otimização de casamento de fase para encontrar layout ótimo de metassuperfíc
     if metadata.get('preview_generated'):
         content += f"- `preview.png` - Comparison with targets\n"
     
-    content += f"\n## Reproducibility / Reprodutibilidade\n\n"
+    content += f"\n## Reprodutibilidade / Reprodutibilidade\n\n"
     content += f"```bash\n"
     content += f"python src/cli/run_phase_matching.py \\\n"
     content += f"  --library \"{metadata['library_file']}\" \\\n"
