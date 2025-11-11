@@ -206,14 +206,81 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Exclude heavy data and results, keep only .gitkeep markers
-data/raw/**            # ignore all raw simulation files
-!data/raw/.gitkeep     # but keep folder structure
-data/processed/**      # processed data and logs
+# ==========================================================
+# 🧬 Projeto Ilum/Metassuperfícies — ajustes personalizados
+# ==========================================================
+
+# === Dados brutos e processados ===
+data/raw/**
+!data/raw/.gitkeep
+
+data/processed/**
 !data/processed/.gitkeep
-data/targets/**        # target images
+
+# === Targets de holografia ===
+# Mantém apenas imagens padronizadas (ex: ilum.png, ufabc.png)
+data/targets/**
+!data/targets/common/
+!data/targets/common/*.png
 !data/targets/.gitkeep
-results/**             # output results (plots, CSVs)
+
+# === Resultados e artefatos gerados ===
+# Ignora tudo em results/, exceto README ou .gitkeep
+results/**
 !results/.gitkeep
-logs/**                # execution logs
+!results/README.md
+
+# === Logs e temporários ===
+logs/**
 !logs/.gitkeep
+
+# === Ambientes locais e IDEs ===
+.vscode/
+.spyderproject
+.spyproject
+.idea/
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+
+# === Arquivos de simulação (COMSOL, CST, MATLAB, etc.) ===
+*.mph
+*.mphbin
+*.smash
+*.fl
+*.bak
+*.log
+*.tmp
+*.fdb
+*.vtu
+*.vts
+
+# === Figuras grandes e exportações ===
+# Bloqueia figuras de resultados grandes, mas permite docs
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.bmp
+!docs/figures/**
+!docs/.gitkeep
+
+# === Ambientes virtuais ===
+.venv/
+.env
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# === Arquivos auxiliares / caches ===
+*.zip
+*.7z
+*.tar.gz
+*.gz
+*.bak
+*.old
+*.tmp
+*.DS_Store
