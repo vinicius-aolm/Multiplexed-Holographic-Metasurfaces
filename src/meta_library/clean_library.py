@@ -15,7 +15,7 @@ de transmissão para polarizações TE e TM.
 
 import logging
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import Optional, Tuple
 import numpy as np
 import pandas as pd
 

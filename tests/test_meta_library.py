@@ -290,7 +290,7 @@ class TestPhaseMatching(unittest.TestCase):
             self.assertGreater(len(saved_files), 0)
             for filepath in saved_files:
                 self.assertTrue(filepath.exists())
-                self.assertTrue(filepath.suffix == '.png')
+                self.assertEqual(filepath.suffix, '.png')
     
     def test_save_layout_outputs(self):
         """Test saving layout outputs."""

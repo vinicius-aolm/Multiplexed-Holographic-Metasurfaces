@@ -13,7 +13,6 @@ dados de parâmetros S para nanopilares de metassuperfície e convertê-los em
 DataFrames pandas estruturados.
 """
 
-import os
 import re
 import logging
 from pathlib import Path
@@ -93,6 +92,7 @@ def parse_touchstone_params(path: str, max_header_lines: int = 200) -> dict:
                     try:
                         v = float(v)
                     except Exception:
+                        # If conversion to float fails, keep value as string (some parameters may be non-numeric)
                         pass
                     params[k] = v
                 # Found parameter line; can exit
@@ -225,9 +225,9 @@ def touchstone_to_dataframe(
                 row[k] = v
 
             # ENSURE L_x, L_y, H columns exist (even if NaN)
-            row["L_x"] = params.get("L_x", np.nan)
-            row["L_y"] = params.get("L_y", np.nan)
-            row["H"] = params.get("H", np.nan)
+            for key in ("L_x", "L_y", "H"):
+                if key not in row:
+                    row[key] = np.nan
 
             # S-parameters based on port count
             if nports == 1:

@@ -226,7 +226,6 @@ def perform_phase_matching(
     error_map_rms = np.zeros((rows, cols))
     
     # Match each pixel
-    total_pixels = rows * cols
     for i in range(rows):
         if i % 10 == 0:
             logger.info(f"  Processing row {i+1}/{rows}...")
@@ -393,8 +392,6 @@ def save_layout_outputs(
 
 if __name__ == "__main__":
     # Example usage / Exemplo de uso
-    import sys
-    
     print("Phase matching module loaded successfully")
     print("Use from CLI tools: run_heatmaps.py or run_phase_matching.py")
     print("\nMódulo de casamento de fase carregado com sucesso")
