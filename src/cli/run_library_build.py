@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-CLI tool for building metasurface library from Touchstone files.
-
-Command-line interface to parse Touchstone files and generate structured
-library DataFrames with S-parameter data.
+Ferramenta CLI para construir biblioteca de metassuperfície a partir de arquivos Touchstone.
 
 Interface de linha de comando para analisar arquivos Touchstone e gerar
 DataFrames estruturados de biblioteca com dados de parâmetros S.
@@ -18,12 +15,12 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
-# Add parent directory to path for imports
+# Adicionar diretório pai ao path para imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from meta_library import generate_df
 
-# Configure logging
+# Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -32,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_repo_root(start: Path = Path.cwd()) -> Path:
-    """Find repository root by locating .git directory."""
+    """Encontra a raiz do repositório localizando o diretório .git."""
     for parent in [start, *start.parents]:
         if (parent / ".git").exists():
             return parent
@@ -40,101 +37,86 @@ def find_repo_root(start: Path = Path.cwd()) -> Path:
 
 
 def parse_args():
-    """
-    Configure command-line arguments.
-    
-    Configura argumentos da linha de comando.
-    """
+    """Configura os argumentos da linha de comando."""
     parser = argparse.ArgumentParser(
-        description="Build metasurface library from Touchstone files / "
-                   "Construir biblioteca de metassuperfície de arquivos Touchstone",
+        description="Construir biblioteca de metassuperfície de arquivos Touchstone",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     
-    # Input options
+    # Opções de entrada
     parser.add_argument(
         "--in-dir",
         type=Path,
         required=True,
-        help="Input directory containing Touchstone files / "
-             "Diretório de entrada contendo arquivos Touchstone"
+        help="Diretório de entrada contendo arquivos Touchstone"
     )
     parser.add_argument(
         "--recursive",
         action="store_true",
-        help="Search subdirectories recursively / "
-             "Buscar subdiretórios recursivamente"
+        help="Buscar subdiretórios recursivamente"
     )
     parser.add_argument(
         "--pattern",
         type=str,
         default="*.ts",
-        help="File pattern to match / Padrão de arquivo para corresponder"
+        help="Padrão de arquivo para corresponder"
     )
     
-    # Output options
+    # Opções de saída
     parser.add_argument(
         "--out-csv",
         type=Path,
-        help="Output CSV file path / Caminho do arquivo CSV de saída"
+        help="Caminho do arquivo CSV de saída"
     )
     parser.add_argument(
         "--out-parquet",
         type=Path,
-        help="Output Parquet file path / Caminho do arquivo Parquet de saída"
+        help="Caminho do arquivo Parquet de saída"
     )
     
-    # Metadata options
+    # Opções de metadados
     parser.add_argument(
         "--experiment",
         type=str,
         default="library_build",
-        help="Experiment name for organization / "
-             "Nome do experimento para organização"
+        help="Nome do experimento para organização"
     )
     parser.add_argument(
         "--out-root",
         type=Path,
         default=None,
-        help="Root output directory (default: results/meta_library/library_build) / "
-             "Diretório raiz de saída (padrão: results/meta_library/library_build)"
+        help="Diretório raiz de saída (padrão: results/meta_library/library_build)"
     )
     
     return parser.parse_args()
 
 
 def create_readme(run_dir: Path, metadata: dict) -> Path:
-    """
-    Create README.md with run information.
-    
-    Cria README.md com informações da execução.
-    """
+    """Cria README.md com informações da execução."""
     readme_path = run_dir / "README.md"
     
-    content = f"""# Library Build Run
+    content = f"""# Execução de Construção de Biblioteca
 
-## Summary / Resumo
-
-Library generated from Touchstone files.
+## Resumo
 
 Biblioteca gerada a partir de arquivos Touchstone.
 
-## Run Information / Informações da Execução
+## Informações da Execução
 
 - **Run ID**: {metadata['run_id']}
-- **Experiment**: {metadata['experiment']}
+- **Experimento**: {metadata['experiment']}
 - **Timestamp**: {metadata['timestamp']}
-- **Input Directory**: {metadata['input_dir']}
-- **Recursive**: {metadata['recursive']}
-- **Pattern**: {metadata['pattern']}
+- **Diretório de Entrada**: {metadata['input_dir']}
+- **Recursivo**: {metadata['recursive']}
+- **Padrão**: {metadata['pattern']}
 
-## Results / Resultados
+## Resultados
 
-- **Files Processed**: {metadata['files_processed']}
-- **Total Rows**: {metadata['total_rows']}
-- **Columns**: {metadata['n_columns']}
+- **Arquivos Processados**: {metadata['files_processed']}
+- **Total de Linhas**: {metadata['total_rows']}
+- **Colunas**: {metadata['n_columns']}
 
-### Output Files / Arquivos de Saída
+### Arquivos de Saída
 
 """
     
@@ -143,10 +125,10 @@ Biblioteca gerada a partir de arquivos Touchstone.
     if metadata.get('output_parquet'):
         content += f"- Parquet: `{metadata['output_parquet']}`\n"
     
-    content += f"\n## Column Summary / Resumo de Colunas\n\n"
+    content += f"\n## Resumo de Colunas\n\n"
     content += f"```\n{metadata.get('columns_info', 'N/A')}\n```\n"
     
-    content += f"\n## Reproducibility / Reprodutibilidade\n\n"
+    content += f"\n## Reprodutibilidade\n\n"
     content += f"```bash\n"
     content += f"python src/cli/run_library_build.py \\\n"
     content += f"  --in-dir \"{metadata['input_dir']}\" \\\n"
@@ -164,37 +146,37 @@ Biblioteca gerada a partir de arquivos Touchstone.
 
 
 def main():
-    """Main execution function / Função principal de execução."""
+    """Função principal de execução."""
     args = parse_args()
     
-    # Setup output directory
+    # Configurar diretório de saída
     if args.out_root is None:
         repo_root = find_repo_root()
         out_root = repo_root / "results" / "meta_library" / "library_build"
     else:
         out_root = args.out_root
     
-    # Create run directory
+    # Criar diretório de execução
     run_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     run_dir = out_root / args.experiment / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     
-    logger.info(f"Starting library build: {args.experiment}")
+    logger.info(f"Iniciando construção de biblioteca: {args.experiment}")
     logger.info(f"Run ID: {run_id}")
-    logger.info(f"Input directory: {args.in_dir}")
-    logger.info(f"Output directory: {run_dir}")
+    logger.info(f"Diretório de entrada: {args.in_dir}")
+    logger.info(f"Diretório de saída: {run_dir}")
     
     try:
-        # Parse Touchstone files
+        # Analisar arquivos Touchstone
         df = generate_df.touchstone_to_dataframe(
             folder=str(args.in_dir),
             recursive=args.recursive,
             pattern=args.pattern
         )
         
-        logger.info(f"Successfully parsed {len(df)} rows from Touchstone files")
+        logger.info(f"Analisadas com sucesso {len(df)} linhas de arquivos Touchstone")
         
-        # Determine output paths
+        # Determinar caminhos de saída
         if args.out_csv:
             out_csv = args.out_csv
         else:
@@ -205,16 +187,16 @@ def main():
         else:
             out_parquet = run_dir / f"library_{run_id}.parquet"
         
-        # Save outputs
-        logger.info(f"Saving CSV to {out_csv}...")
+        # Salvar saídas
+        logger.info(f"Salvando CSV em {out_csv}...")
         out_csv.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(out_csv, index=False)
         
-        logger.info(f"Saving Parquet to {out_parquet}...")
+        logger.info(f"Salvando Parquet em {out_parquet}...")
         out_parquet.parent.mkdir(parents=True, exist_ok=True)
         df.to_parquet(out_parquet, index=False)
         
-        # Create metadata
+        # Criar metadados
         metadata = {
             "run_id": run_id,
             "experiment": args.experiment,
@@ -231,35 +213,35 @@ def main():
             "output_parquet": str(out_parquet),
         }
         
-        # Save metadata as JSON
+        # Salvar metadados como JSON
         meta_path = run_dir / "run_meta.json"
         with open(meta_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
         
-        logger.info(f"Metadata saved to {meta_path}")
+        logger.info(f"Metadados salvos em {meta_path}")
         
-        # Create README
+        # Criar README
         readme_path = create_readme(run_dir, metadata)
-        logger.info(f"README saved to {readme_path}")
+        logger.info(f"README salvo em {readme_path}")
         
-        # Print summary
+        # Imprimir resumo
         print("\n" + "="*60)
-        print("✅ Library Build Complete / Construção de Biblioteca Completa")
+        print("✅ Construção de Biblioteca Completa")
         print("="*60)
         print(f"\nRun ID: {run_id}")
-        print(f"Files processed: {metadata['files_processed']}")
-        print(f"Total rows: {metadata['total_rows']}")
-        print(f"Columns: {metadata['n_columns']}")
-        print(f"\nOutputs:")
+        print(f"Arquivos processados: {metadata['files_processed']}")
+        print(f"Total de linhas: {metadata['total_rows']}")
+        print(f"Colunas: {metadata['n_columns']}")
+        print(f"\nSaídas:")
         print(f"  - CSV: {out_csv}")
         print(f"  - Parquet: {out_parquet}")
-        print(f"  - Metadata: {meta_path}")
+        print(f"  - Metadados: {meta_path}")
         print(f"  - README: {readme_path}")
-        print(f"\nRun directory: {run_dir}")
+        print(f"\nDiretório de execução: {run_dir}")
         print("="*60 + "\n")
         
     except Exception as e:
-        logger.error(f"Failed to build library: {e}", exc_info=True)
+        logger.error(f"Falha ao construir biblioteca: {e}", exc_info=True)
         sys.exit(1)
 
 
