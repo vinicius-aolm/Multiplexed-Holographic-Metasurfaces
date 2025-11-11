@@ -439,7 +439,7 @@ def parse_args():
     parser.add_argument("--experiment", type=str, default="demo_holografia",
                        help="Nome do experimento")
     parser.add_argument("--out_root", type=Path, 
-                       default=find_repo_root() / "results" / "holography" / "gs_x",
+                       default=find_repo_root() / "results" / "holography-dammann" / "gs_x",
                        help="Pasta base para resultados")
     parser.add_argument("--pol", type=str, default="X", choices=["X", "Y"],
                        help="Polarização para naming")
