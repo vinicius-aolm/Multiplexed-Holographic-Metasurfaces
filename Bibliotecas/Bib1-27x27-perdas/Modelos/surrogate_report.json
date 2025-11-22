@@ -1,0 +1,77 @@
+{
+  "data_path": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\Otimizacao e ML\\Essential4Libs\\Bib1-27x27-perdas\\biblioteca_Bib1-27x27-perdas.csv",
+  "num_samples": 73629,
+  "freq_ghz": 281760.0,
+  "freq_tol": 5.0,
+  "features": {
+    "numeric": [],
+    "categorical": [
+      "id_nanopilar"
+    ]
+  },
+  "mlp": {
+    "hidden_layers": [
+      128,
+      64
+    ],
+    "activation": "relu",
+    "learning_rate_init": 0.001,
+    "max_iter": 5000,
+    "early_stopping": true
+  },
+  "metrics": {
+    "TE": {
+      "train": {
+        "r2_re": 0.999961127810904,
+        "r2_im": 0.9998791239769685,
+        "r2_agg": 0.9999244787049942,
+        "rmse_re": 0.003757920629856665,
+        "rmse_im": 0.006814655715270386,
+        "rmse_agg": 0.007782126957199405,
+        "mae_re": 0.002314312831528543,
+        "mae_im": 0.004704111156375285,
+        "mae_agg": 0.0035092119939519133
+      },
+      "test": {
+        "r2_re": 0.9999595733200073,
+        "r2_im": 0.9998726001658457,
+        "r2_agg": 0.9999202900779084,
+        "rmse_re": 0.0037883995351409554,
+        "rmse_im": 0.007019757192326123,
+        "rmse_agg": 0.007976776421404234,
+        "mae_re": 0.0023353421781875236,
+        "mae_im": 0.00478274026717044,
+        "mae_agg": 0.003559041222678982
+      }
+    },
+    "TM": {
+      "train": {
+        "r2_re": 0.9962479197745994,
+        "r2_im": 0.9931558085750918,
+        "r2_agg": 0.9945479122248653,
+        "rmse_re": 2.579388870988918e-05,
+        "rmse_im": 3.8600053635989594e-05,
+        "rmse_agg": 4.642508842726551e-05,
+        "mae_re": 1.93977793174439e-05,
+        "mae_im": 3.0240893290184948e-05,
+        "mae_agg": 2.4819336303814428e-05
+      },
+      "test": {
+        "r2_re": 0.9961669208451128,
+        "r2_im": 0.992981797401663,
+        "r2_agg": 0.9944214787231163,
+        "rmse_re": 2.620067388197243e-05,
+        "rmse_im": 3.9180272620039324e-05,
+        "rmse_agg": 4.7133523891706585e-05,
+        "mae_re": 1.97576994176575e-05,
+        "mae_im": 3.051550878855072e-05,
+        "mae_agg": 2.513660410310411e-05
+      }
+    }
+  },
+  "models": {
+    "TE": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\Otimizacao e ML\\Essential4Libs\\Bib1-27x27-perdas\\Modelos\\surrogate_S13.joblib",
+    "TM": "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\Otimizacao e ML\\Essential4Libs\\Bib1-27x27-perdas\\Modelos\\surrogate_S14.joblib"
+  },
+  "train_time_seconds": 92.62437701225281
+}
