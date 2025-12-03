@@ -1,0 +1,837 @@
+' Criar e Simular
+
+Sub Main ()
+
+
+'## Merged Block - use template: Shiva_Script_VBA.cfg
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+'set the units
+With Units
+    .Geometry "nm"
+    .Frequency "THz"
+    .Voltage "V"
+    .Resistance "Ohm"
+    .Inductance "H"
+    .TemperatureUnit  "Kelvin"
+    .Time "ns"
+    .Current "A"
+    .Conductance "Siemens"
+    .Capacitance "F"
+End With
+
+'----------------------------------------------------------------------------
+
+'set the wavelength range
+Solver.WavelengthRange "1.063", "1.065"
+
+'----------------------------------------------------------------------------
+
+Plot.DrawBox True
+
+With Background
+     .Type "Normal"
+     .Epsilon "1.0"
+     .Mu "1.0"
+     .Rho "1.204"
+     .ThermalType "Normal"
+     .ThermalConductivity "0.026"
+     .HeatCapacity "1.005"
+     .XminSpace "0.0"
+     .XmaxSpace "0.0"
+     .YminSpace "0.0"
+     .YmaxSpace "0.0"
+     .ZminSpace "0.0"
+     .ZmaxSpace "0.0"
+End With
+
+With Boundary
+     .Xmin "expanded open"
+     .Xmax "expanded open"
+     .Ymin "expanded open"
+     .Ymax "expanded open"
+     .Zmin "expanded open"
+     .Zmax "expanded open"
+     .Xsymmetry "none"
+     .Ysymmetry "none"
+     .Zsymmetry "none"
+End With
+
+' optimize mesh settings for planar structures
+
+With Mesh
+     .MergeThinPECLayerFixpoints "True"
+     .RatioLimit "20"
+     .AutomeshRefineAtPecLines "True", "6"
+     .FPBAAvoidNonRegUnite "True"
+     .ConsiderSpaceForLowerMeshLimit "False"
+     .MinimumStepNumber "5"
+     .AnisotropicCurvatureRefinement "True"
+     .AnisotropicCurvatureRefinementFSM "True"
+End With
+
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "RatioLimitGeometry", "20"
+     .Set "EdgeRefinementOn", "1"
+     .Set "EdgeRefinementRatio", "6"
+End With
+
+With MeshSettings
+     .SetMeshType "Tet"
+     .Set "VolMeshGradation", "1.5"
+     .Set "SrfMeshGradation", "1.5"
+End With
+
+With MeshSettings
+     .SetMeshType "HexTLM"
+     .Set "RatioLimitGeometry", "20"
+End With
+
+' change mesh adaption scheme to energy
+' 		(planar structures tend to store high energy
+'     	 locally at edges rather than globally in volume)
+
+MeshAdaption3D.SetAdaptionStrategy "Energy"
+
+' switch on FD-TET setting for accurate farfields
+
+FDSolver.ExtrudeOpenBC "True"
+
+'----------------------------------------------------------------------------
+
+'change problem type
+ChangeProblemType "Optical"
+
+Dim sDefineAt As String
+sDefineAt = "1.063;1.064;1.065"
+Dim sDefineAtName As String
+sDefineAtName = "1.063;1.064;1.065"
+Dim sDefineAtToken As String
+sDefineAtToken = "wl="
+Dim aFreq() As String
+aFreq = Split(sDefineAt, ";")
+Dim aNames() As String
+aNames = Split(sDefineAtName, ";")
+
+Dim nIndex As Integer
+For nIndex = LBound(aFreq) To UBound(aFreq)
+
+Dim zz_val As String
+zz_val = aFreq (nIndex)
+Dim zz_name As String
+zz_name = sDefineAtToken & aNames (nIndex)
+
+' Define E-Field Monitors
+With Monitor
+    .Reset
+    .Name "e-field ("& zz_name &")"
+    .Dimension "Volume"
+    .Domain "Wavelength"
+    .FieldType "Efield"
+    .MonitorValue  zz_val
+    .Create
+End With
+
+' Define Farfield Monitors
+With Monitor
+    .Reset
+    .Name "farfield ("& zz_name &")"
+    .Domain "Wavelength"
+    .FieldType "Farfield"
+    .MonitorValue  zz_val
+    .ExportFarfieldSource "False"
+    .Create
+End With
+
+Next
+
+'----------------------------------------------------------------------------
+
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "Version", 1%
+End With
+
+With Mesh
+     .MeshType "PBA"
+End With
+
+'set the solver type
+ChangeSolverType("HF Time Domain")
+
+'----------------------------------------------------------------------------
+
+
+
+
+'## Merged Block - define material: Si
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Material
+     .Reset
+     .Name "Si"
+     .Folder ""
+     .Rho "0.0"
+     .ThermalType "Normal"
+     .ThermalConductivity "0"
+     .SpecificHeat "0", "J/K/kg"
+     .DynamicViscosity "0"
+     .Emissivity "0"
+     .MetabolicRate "0.0"
+     .VoxelConvection "0.0"
+     .BloodFlow "0"
+     .MechanicsType "Unused"
+     .FrqType "all"
+     .Type "Normal"
+     .MaterialUnit "Frequency", "THz"
+     .MaterialUnit "Geometry", "nm"
+     .MaterialUnit "Time", "ns"
+     .MaterialUnit "Temperature", "Kelvin"
+     .Epsilon "12.599"
+     .Mu "1"
+     .Sigma "0"
+     .TanD "0.000743"
+     .TanDFreq "0.0"
+     .TanDGiven "True"
+     .TanDModel "ConstTanD"
+     .EnableUserConstTanDModelOrderEps "False"
+     .ConstTanDModelOrderEps "1"
+     .SetElParametricConductivity "False"
+     .ReferenceCoordSystem "Global"
+     .CoordSystemType "Cartesian"
+     .SigmaM "0"
+     .TanDM "0.0"
+     .TanDMFreq "0.0"
+     .TanDMGiven "False"
+     .TanDMModel "ConstTanD"
+     .EnableUserConstTanDModelOrderMu "False"
+     .ConstTanDModelOrderMu "1"
+     .SetMagParametricConductivity "False"
+     .DispModelEps "None"
+     .DispModelMu "None"
+     .DispersiveFittingSchemeEps "Nth Order"
+     .MaximalOrderNthModelFitEps "10"
+     .ErrorLimitNthModelFitEps "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelEps "False"
+     .DispersiveFittingSchemeMu "Nth Order"
+     .MaximalOrderNthModelFitMu "10"
+     .ErrorLimitNthModelFitMu "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelMu "False"
+     .UseGeneralDispersionEps "False"
+     .UseGeneralDispersionMu "False"
+     .NLAnisotropy "False"
+     .NLAStackingFactor "1"
+     .NLADirectionX "1"
+     .NLADirectionY "0"
+     .NLADirectionZ "0"
+     .Colour "0", "1", "1"
+     .Wireframe "False"
+     .Reflection "False"
+     .Allowoutline "True"
+     .Transparentoutline "False"
+     .Transparency "0"
+     .Create
+End With
+
+
+'## Merged Block - define material: SiO2
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Material
+     .Reset
+     .Name "SiO2"
+     .Folder ""
+     .Rho "0.0"
+     .ThermalType "Normal"
+     .ThermalConductivity "0"
+     .SpecificHeat "0", "J/K/kg"
+     .DynamicViscosity "0"
+     .Emissivity "0"
+     .MetabolicRate "0.0"
+     .VoxelConvection "0.0"
+     .BloodFlow "0"
+     .MechanicsType "Unused"
+     .FrqType "all"
+     .Type "Normal"
+     .MaterialUnit "Frequency", "THz"
+     .MaterialUnit "Geometry", "nm"
+     .MaterialUnit "Time", "ns"
+     .MaterialUnit "Temperature", "Kelvin"
+     .Epsilon "2.1013"
+     .Mu "1"
+     .Sigma "0"
+     .TanD "0.0"
+     .TanDFreq "0.0"
+     .TanDGiven "False"
+     .TanDModel "ConstTanD"
+     .EnableUserConstTanDModelOrderEps "False"
+     .ConstTanDModelOrderEps "1"
+     .SetElParametricConductivity "False"
+     .ReferenceCoordSystem "Global"
+     .CoordSystemType "Cartesian"
+     .SigmaM "0"
+     .TanDM "0.0"
+     .TanDMFreq "0.0"
+     .TanDMGiven "False"
+     .TanDMModel "ConstTanD"
+     .EnableUserConstTanDModelOrderMu "False"
+     .ConstTanDModelOrderMu "1"
+     .SetMagParametricConductivity "False"
+     .DispModelEps  "None"
+     .DispModelMu "None"
+     .DispersiveFittingSchemeEps "Nth Order"
+     .MaximalOrderNthModelFitEps "10"
+     .ErrorLimitNthModelFitEps "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelEps "False"
+     .DispersiveFittingSchemeMu "Nth Order"
+     .MaximalOrderNthModelFitMu "10"
+     .ErrorLimitNthModelFitMu "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelMu "False"
+     .UseGeneralDispersionEps "False"
+     .UseGeneralDispersionMu "False"
+     .NLAnisotropy "False"
+     .NLAStackingFactor "1"
+     .NLADirectionX "1"
+     .NLADirectionY "0"
+     .NLADirectionZ "0"
+     .Colour "0", "0.501961", "1"
+     .Wireframe "False"
+     .Reflection "False"
+     .Allowoutline "True"
+     .Transparentoutline "False"
+     .Transparency "0"
+     .Create
+End With
+
+StopVersionStringOverrideMode
+
+'----------------------------------------------------------------------------
+'----------------------------------------------------------------------------
+
+Dim n As Long
+Dim m As Long
+Dim p As Integer
+Dim H As Integer
+Dim LX() As String
+Dim LY() As String
+
+Dim R As Integer
+Dim Q As Integer
+Dim S As Integer
+
+p = 520
+H = 600
+R = 3 'Número de células unitárias
+Q = R*R - 1
+S = R-1
+
+ReDim LX(0 To Q) As String
+ReDim LY(0 To Q) As String
+
+' Importando dados para LX
+
+Dim caminhoArquivo_LX As String
+Dim numeroArquivo_LX As Integer
+Dim i As Integer
+
+caminhoArquivo_LX = "C:\Users\User\Downloads\D.txt"
+
+numeroArquivo_LX = FreeFile
+Open caminhoArquivo_LX For Input As #numeroArquivo_LX
+
+For i = LBound(LX) To UBound(LX)
+
+    Line Input #numeroArquivo_LX, LX(i)
+Next i
+
+Close #numeroArquivo_LX
+
+' Importando dados para LY
+
+Dim caminhoArquivo_LY As String
+Dim numeroArquivo_LY As Integer
+Dim j As Integer
+
+caminhoArquivo_LY = "C:\Users\User\Downloads\DY.txt"
+
+numeroArquivo_LY = FreeFile
+Open caminhoArquivo_LY For Input As #numeroArquivo_LY
+
+For j = LBound(LY) To UBound(LY)
+
+    Line Input #numeroArquivo_LY, LY(j)
+Next j
+
+Close #numeroArquivo_LY
+
+' Criando uma matriz com os vetor LX
+
+Dim minhaMatriz_LX() As String
+ReDim minhaMatriz_LX(0 To S, 0 To S)
+
+For i = 0 To Q
+    linha = i \ R
+    coluna = i Mod R
+    minhaMatriz_LX(linha, coluna) = LX(i)
+Next i
+
+' Criando uma matriz com os vetor LY
+
+Dim minhaMatriz_LY() As String
+ReDim minhaMatriz_LY(0 To S, 0 To S)
+
+For i = 0 To Q
+    linha = i \ R
+    coluna = i Mod R
+    minhaMatriz_LY(linha, coluna) = LY(i)
+Next i
+
+' Criar MS
+'## Merged Block - define brick: component2:Substrato
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Brick
+     .Reset
+     .Name "Substrato"
+     .Component "component2"
+     .Material "SiO2"
+     .Xrange "0", p*R
+     .Yrange "0", p*R
+     .Zrange "-6*H", "0"
+     .Create
+End With
+
+For n = 0 To S
+For m = 0 To S
+
+'## Merged Block - define ecylinder: Component1:Meta Atom
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With ECylinder
+     .Reset
+     .Name "Meta Atomo" + Str(n) + Str(m)
+     .Component "Component1"
+     .Material "Si"
+     .Xradius minhaMatriz_LX(n,m)
+     .Yradius minhaMatriz_LY(n,m)
+     .Axis "z"
+     .Zrange "0", "H"
+     .Xcenter n*p + p/2
+     .Ycenter m*p + p/2
+     .Segments "0"
+     .Create
+End With
+
+Next m
+Next n
+
+' Configuração do Solver e Malha
+
+
+'## Merged Block - set mesh properties (Hexahedral)
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Mesh
+     .MeshType "PBA"
+     .SetCreator "High Frequency"
+End With
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "Version", 1%
+     'MAX CELL - WAVELENGTH REFINEMENT
+     .Set "StepsPerWaveNear", "5"
+     .Set "StepsPerWaveFar", "5"
+     .Set "WavelengthRefinementSameAsNear", "1"
+     'MAX CELL - GEOMETRY REFINEMENT
+     .Set "StepsPerBoxNear", "20"
+     .Set "StepsPerBoxFar", "1"
+     .Set "MaxStepNear", "0"
+     .Set "MaxStepFar", "0"
+     .Set "ModelBoxDescrNear", "maxedge"
+     .Set "ModelBoxDescrFar", "maxedge"
+     .Set "UseMaxStepAbsolute", "0"
+     .Set "GeometryRefinementSameAsNear", "0"
+     'MIN CELL
+     .Set "UseRatioLimitGeometry", "1"
+     .Set "RatioLimitGeometry", "10"
+     .Set "MinStepGeometryX", "0"
+     .Set "MinStepGeometryY", "0"
+     .Set "MinStepGeometryZ", "0"
+     .Set "UseSameMinStepGeometryXYZ", "1"
+End With
+With MeshSettings
+     .Set "PlaneMergeVersion", "2"
+End With
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "FaceRefinementOn", "0"
+     .Set "FaceRefinementPolicy", "2"
+     .Set "FaceRefinementRatio", "2"
+     .Set "FaceRefinementStep", "0"
+     .Set "FaceRefinementNSteps", "2"
+     .Set "EllipseRefinementOn", "0"
+     .Set "EllipseRefinementPolicy", "2"
+     .Set "EllipseRefinementRatio", "2"
+     .Set "EllipseRefinementStep", "0"
+     .Set "EllipseRefinementNSteps", "2"
+     .Set "FaceRefinementBufferLines", "3"
+     .Set "EdgeRefinementOn", "1"
+     .Set "EdgeRefinementPolicy", "1"
+     .Set "EdgeRefinementRatio", "6"
+     .Set "EdgeRefinementStep", "0"
+     .Set "EdgeRefinementBufferLines", "3"
+     .Set "RefineEdgeMaterialGlobal", "0"
+     .Set "RefineAxialEdgeGlobal", "0"
+     .Set "BufferLinesNear", "3"
+     .Set "UseDielectrics", "1"
+     .Set "EquilibrateOn", "0"
+     .Set "Equilibrate", "1.5"
+     .Set "IgnoreThinPanelMaterial", "0"
+End With
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "SnapToAxialEdges", "1"
+     .Set "SnapToPlanes", "1"
+     .Set "SnapToSpheres", "1"
+     .Set "SnapToEllipses", "1"
+     .Set "SnapToCylinders", "1"
+     .Set "SnapToCylinderCenters", "1"
+     .Set "SnapToEllipseCenters", "1"
+End With
+With Discretizer
+     .ConnectivityCheck "True"
+     .UsePecEdgeModel "True"
+     .PointAccEnhancement "0"
+     .TSTVersion "0"
+	  .PBAVersion "2020071020"
+End With
+
+
+'## Merged Block - pick face
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+Pick.PickFaceFromId "component2:Substrato", "2"
+
+
+'## Merged Block - define port: 1
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Port
+     .Reset
+     .PortNumber "1"
+     .Label ""
+     .Folder ""
+     .NumberOfModes "1"
+     .AdjustPolarization "True"
+     .PolarizationAngle "90"
+     .ReferencePlaneDistance "0"
+     .TextSize "50"
+     .TextMaxLimit "1"
+     .Coordinates "Picks"
+     .Orientation "positive"
+     .PortOnBound "False"
+     .ClipPickedPortToBound "False"
+     .Xrange "0", "1040"
+     .Yrange "0", "1040"
+     .Zrange "-3600", "-3600"
+     .XrangeAdd "0.0", "0.0"
+     .YrangeAdd "0.0", "0.0"
+     .ZrangeAdd "0.0", "0.0"
+     .SingleEnded "False"
+     .WaveguideMonitor "False"
+     .Create
+End With
+
+
+'## Merged Block - define time domain solver parameters
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+Mesh.SetCreator "High Frequency"
+
+With Solver
+     .Method "Hexahedral"
+     .CalculationType "TD-S"
+     .StimulationPort "1"
+     .StimulationMode "1"
+     .SteadyStateLimit "-40"
+     .MeshAdaption "False"
+     .CalculateModesOnly "False"
+     .SParaSymmetry "False"
+     .StoreTDResultsInCache  "False"
+     .FullDeembedding "False"
+     .SuperimposePLWExcitation "False"
+     .UseSensitivityAnalysis "False"
+End With
+
+
+'## Merged Block - modify port: 1
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Port
+     .Reset
+     .LoadContentForModify "1"
+     .Label ""
+     .Folder ""
+     .NumberOfModes "2"
+     .AdjustPolarization "True"
+     .PolarizationAngle "90"
+     .ReferencePlaneDistance "0"
+     .TextSize "50"
+     .TextMaxLimit "1"
+     .Coordinates "Picks"
+     .Orientation "positive"
+     .PortOnBound "False"
+     .ClipPickedPortToBound "False"
+     .Xrange "0", "1040"
+     .Yrange "0", "1040"
+     .Zrange "-3600", "-3600"
+     .XrangeAdd "0.0", "0.0"
+     .YrangeAdd "0.0", "0.0"
+     .ZrangeAdd "0.0", "0.0"
+     .SingleEnded "False"
+     .Shield "none"
+     .WaveguideMonitor "False"
+     .Modify
+End With
+
+
+'## Merged Block - define boundaries
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Boundary
+     .Xmin "open"
+     .Xmax "open"
+     .Ymin "open"
+     .Ymax "open"
+     .Zmin "open"
+     .Zmax "expanded open"
+     .Xsymmetry "none"
+     .Ysymmetry "none"
+     .Zsymmetry "none"
+     .ApplyInAllDirections "False"
+     .OpenAddSpaceFactor "0.5"
+End With
+
+
+'## Merged Block - define background
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Background
+     .ResetBackground
+     .XminSpace "0.0"
+     .XmaxSpace "0.0"
+     .YminSpace "0.0"
+     .YmaxSpace "0.0"
+     .ZminSpace "0.0"
+     .ZmaxSpace "1064"
+     .ApplyInAllDirections "False"
+End With
+
+With Material
+     .Reset
+     .Rho "1.204"
+     .ThermalType "Normal"
+     .ThermalConductivity "0.026"
+     .SpecificHeat "1004.9999999999999", "J/K/kg"
+     .DynamicViscosity "0"
+     .Emissivity "0"
+     .MetabolicRate "0.0"
+     .VoxelConvection "0.0"
+     .BloodFlow "0"
+     .MechanicsType "Unused"
+     .FrqType "all"
+     .Type "Normal"
+     .MaterialUnit "Frequency", "Hz"
+     .MaterialUnit "Geometry", "m"
+     .MaterialUnit "Time", "s"
+     .MaterialUnit "Temperature", "Kelvin"
+     .Epsilon "1.0"
+     .Mu "1.0"
+     .Sigma "0"
+     .TanD "0.0"
+     .TanDFreq "0.0"
+     .TanDGiven "False"
+     .TanDModel "ConstSigma"
+     .EnableUserConstTanDModelOrderEps "False"
+     .ConstTanDModelOrderEps "1"
+     .SetElParametricConductivity "False"
+     .ReferenceCoordSystem "Global"
+     .CoordSystemType "Cartesian"
+     .SigmaM "0"
+     .TanDM "0.0"
+     .TanDMFreq "0.0"
+     .TanDMGiven "False"
+     .TanDMModel "ConstSigma"
+     .EnableUserConstTanDModelOrderMu "False"
+     .ConstTanDModelOrderMu "1"
+     .SetMagParametricConductivity "False"
+     .DispModelEps  "None"
+     .DispModelMu "None"
+     .DispersiveFittingSchemeEps "Nth Order"
+     .MaximalOrderNthModelFitEps "10"
+     .ErrorLimitNthModelFitEps "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelEps "False"
+     .DispersiveFittingSchemeMu "Nth Order"
+     .MaximalOrderNthModelFitMu "10"
+     .ErrorLimitNthModelFitMu "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelMu "False"
+     .UseGeneralDispersionEps "False"
+     .UseGeneralDispersionMu "False"
+     .NLAnisotropy "False"
+     .NLAStackingFactor "1"
+     .NLADirectionX "1"
+     .NLADirectionY "0"
+     .NLADirectionZ "0"
+     .Colour "0.6", "0.6", "0.6"
+     .Wireframe "False"
+     .Reflection "False"
+     .Allowoutline "True"
+     .Transparentoutline "False"
+     .Transparency "0"
+     .ChangeBackgroundMaterial
+End With
+
+
+'## Merged Block - define monitor: e-field (wl=1.064;z=1664)
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Monitor
+     .Reset
+     .Name "e-field (wl=1.064;z=1664)"
+     .Dimension "Volume"
+     .Domain "Wavelength"
+     .FieldType "Efield"
+     .MonitorValue "1.064"
+     .UseSubvolume "True"
+     .Coordinates "Structure"
+     .SetSubvolume "0", "1040", "0", "1040", "-3600", "600"
+     .SetSubvolumeOffset "0.0", "0.0", "0.0", "0.0", "0.0", "0.0"
+     .SetSubvolumeInflateWithOffset "False"
+     .PlaneNormal "z"
+     .PlanePosition "1664"
+     .Create
+End With
+
+
+'## Merged Block - set mesh properties (Hexahedral)
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Mesh
+     .MeshType "PBA"
+     .SetCreator "High Frequency"
+End With
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "Version", 1%
+     'MAX CELL - WAVELENGTH REFINEMENT
+     .Set "StepsPerWaveNear", "10"
+     .Set "StepsPerWaveFar", "10"
+     .Set "WavelengthRefinementSameAsNear", "1"
+     'MAX CELL - GEOMETRY REFINEMENT
+     .Set "StepsPerBoxNear", "20"
+     .Set "StepsPerBoxFar", "1"
+     .Set "MaxStepNear", "0"
+     .Set "MaxStepFar", "0"
+     .Set "ModelBoxDescrNear", "maxedge"
+     .Set "ModelBoxDescrFar", "maxedge"
+     .Set "UseMaxStepAbsolute", "0"
+     .Set "GeometryRefinementSameAsNear", "0"
+     'MIN CELL
+     .Set "UseRatioLimitGeometry", "1"
+     .Set "RatioLimitGeometry", "15"
+     .Set "MinStepGeometryX", "0"
+     .Set "MinStepGeometryY", "0"
+     .Set "MinStepGeometryZ", "0"
+     .Set "UseSameMinStepGeometryXYZ", "1"
+End With
+With MeshSettings
+     .Set "PlaneMergeVersion", "2"
+End With
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "FaceRefinementOn", "0"
+     .Set "FaceRefinementPolicy", "2"
+     .Set "FaceRefinementRatio", "2"
+     .Set "FaceRefinementStep", "0"
+     .Set "FaceRefinementNSteps", "2"
+     .Set "EllipseRefinementOn", "0"
+     .Set "EllipseRefinementPolicy", "2"
+     .Set "EllipseRefinementRatio", "2"
+     .Set "EllipseRefinementStep", "0"
+     .Set "EllipseRefinementNSteps", "2"
+     .Set "FaceRefinementBufferLines", "3"
+     .Set "EdgeRefinementOn", "1"
+     .Set "EdgeRefinementPolicy", "1"
+     .Set "EdgeRefinementRatio", "6"
+     .Set "EdgeRefinementStep", "0"
+     .Set "EdgeRefinementBufferLines", "3"
+     .Set "RefineEdgeMaterialGlobal", "0"
+     .Set "RefineAxialEdgeGlobal", "0"
+     .Set "BufferLinesNear", "3"
+     .Set "UseDielectrics", "1"
+     .Set "EquilibrateOn", "0"
+     .Set "Equilibrate", "1.5"
+     .Set "IgnoreThinPanelMaterial", "0"
+End With
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "SnapToAxialEdges", "1"
+     .Set "SnapToPlanes", "1"
+     .Set "SnapToSpheres", "1"
+     .Set "SnapToEllipses", "1"
+     .Set "SnapToCylinders", "1"
+     .Set "SnapToCylinderCenters", "1"
+     .Set "SnapToEllipseCenters", "1"
+End With
+With Discretizer
+     .ConnectivityCheck "True"
+     .UsePecEdgeModel "True"
+     .PointAccEnhancement "0"
+     .TSTVersion "0"
+	  .PBAVersion "2020071020"
+End With
+
+
+'## Merged Block - define boundaries
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Boundary
+     .Xmin "open"
+     .Xmax "open"
+     .Ymin "open"
+     .Ymax "open"
+     .Zmin "expanded open"
+     .Zmax "expanded open"
+     .Xsymmetry "none"
+     .Ysymmetry "none"
+     .Zsymmetry "none"
+     .ApplyInAllDirections "False"
+     .OpenAddSpaceFactor "0.5"
+End With
+
+Solver.Start
+
+' Salvar os Resultados
+
+Dim pasta As String
+pasta = "C:\Users\User\Documents\USUARIOS\GIANNI\CST\Vinícius - ILUM FEEC (TCC)\JoãoPedro - Testes\JoãoPedro - Testes\Resultados_Automatizados\"
+
+Dim treePathSParam1 As String
+treePathSParam1 = "1D Results\S-Parameters\S1(1),1(1)"
+
+Dim treePathSParam2 As String
+treePathSParam2 = "1D Results\S-Parameters\S1(2),1(1)"
+
+SelectTreeItem(treePathSParam1)
+
+With ASCIIExport
+    .Reset
+    .FileName(pasta & "S11_results.txt")
+    .Execute
+End With
+
+SelectTreeItem(treePathSParam2)
+With ASCIIExport
+    .Reset
+    .FileName(pasta & "S11_results.txt")
+    .Execute
+End With
+
+Dim treePathMonitor As String
+treePathMonitor = "2D/3D Results\E-Field\e-field (wl=1.064;z=1664)[1(1)])"
+
+SelectTreeItem(treePathMonitor)
+
+With ASCIIExport
+    .Reset
+    .FileName(pasta & "EField.txt")
+    .Execute
+End With
+
+End Sub

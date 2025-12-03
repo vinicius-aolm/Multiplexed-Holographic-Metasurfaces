@@ -1,0 +1,383 @@
+' Criar Meta Atoms
+
+Sub Main ()
+
+
+'## Merged Block - use template: FSS, Metamaterial - Full Structure_5.cfg
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+'set the units
+With Units
+    .Geometry "nm"
+    .Frequency "GHz"
+    .Voltage "V"
+    .Resistance "Ohm"
+    .Inductance "H"
+    .TemperatureUnit  "Kelvin"
+    .Time "ns"
+    .Current "A"
+    .Conductance "Siemens"
+    .Capacitance "F"
+End With
+
+'----------------------------------------------------------------------------
+
+Plot.DrawBox True
+
+With Background
+     .Type "Normal"
+     .Epsilon "1.0"
+     .Mu "1.0"
+     .Rho "1.204"
+     .ThermalType "Normal"
+     .ThermalConductivity "0.026"
+     .HeatCapacity "1.005"
+     .XminSpace "0.0"
+     .XmaxSpace "0.0"
+     .YminSpace "0.0"
+     .YmaxSpace "0.0"
+     .ZminSpace "0.0"
+     .ZmaxSpace "0.0"
+End With
+
+With Boundary
+     .Xmin "expanded open"
+     .Xmax "expanded open"
+     .Ymin "expanded open"
+     .Ymax "expanded open"
+     .Zmin "expanded open"
+     .Zmax "expanded open"
+     .Xsymmetry "none"
+     .Ysymmetry "none"
+     .Zsymmetry "none"
+End With
+
+' optimize mesh settings for planar structures
+
+With Mesh
+     .MergeThinPECLayerFixpoints "True"
+     .RatioLimit "20"
+     .AutomeshRefineAtPecLines "True", "6"
+     .FPBAAvoidNonRegUnite "True"
+     .ConsiderSpaceForLowerMeshLimit "False"
+     .MinimumStepNumber "5"
+     .AnisotropicCurvatureRefinement "True"
+     .AnisotropicCurvatureRefinementFSM "True"
+End With
+
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "RatioLimitGeometry", "20"
+     .Set "EdgeRefinementOn", "1"
+     .Set "EdgeRefinementRatio", "6"
+End With
+
+With MeshSettings
+     .SetMeshType "Tet"
+     .Set "VolMeshGradation", "1.5"
+     .Set "SrfMeshGradation", "1.5"
+End With
+
+With MeshSettings
+     .SetMeshType "HexTLM"
+     .Set "RatioLimitGeometry", "20"
+End With
+
+' change mesh adaption scheme to energy
+' 		(planar structures tend to store high energy
+'     	 locally at edges rather than globally in volume)
+
+MeshAdaption3D.SetAdaptionStrategy "Energy"
+
+' switch on FD-TET setting for accurate farfields
+
+FDSolver.ExtrudeOpenBC "True"
+
+'----------------------------------------------------------------------------
+
+'change problem type
+ChangeProblemType "Optical"
+
+'----------------------------------------------------------------------------
+
+With MeshSettings
+     .SetMeshType "Hex"
+     .Set "Version", 1%
+End With
+
+With Mesh
+     .MeshType "PBA"
+End With
+
+'set the solver type
+ChangeSolverType("HF Time Domain")
+
+'----------------------------------------------------------------------------
+
+
+
+
+'## Merged Block - define material: SiO2
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Material
+     .Reset
+     .Name "SiO2"
+     .Folder ""
+     .Rho "0.0"
+     .ThermalType "Normal"
+     .ThermalConductivity "0"
+     .SpecificHeat "0", "J/K/kg"
+     .DynamicViscosity "0"
+     .Emissivity "0"
+     .MetabolicRate "0.0"
+     .VoxelConvection "0.0"
+     .BloodFlow "0"
+     .MechanicsType "Unused"
+     .FrqType "all"
+     .Type "Normal"
+     .MaterialUnit "Frequency", "GHz"
+     .MaterialUnit "Geometry", "nm"
+     .MaterialUnit "Time", "ns"
+     .MaterialUnit "Temperature", "Kelvin"
+     .Epsilon "2.1013"
+     .Mu "1"
+     .Sigma "0"
+     .TanD "0.0"
+     .TanDFreq "0.0"
+     .TanDGiven "False"
+     .TanDModel "ConstTanD"
+     .EnableUserConstTanDModelOrderEps "False"
+     .ConstTanDModelOrderEps "1"
+     .SetElParametricConductivity "False"
+     .ReferenceCoordSystem "Global"
+     .CoordSystemType "Cartesian"
+     .SigmaM "0"
+     .TanDM "0.0"
+     .TanDMFreq "0.0"
+     .TanDMGiven "False"
+     .TanDMModel "ConstTanD"
+     .EnableUserConstTanDModelOrderMu "False"
+     .ConstTanDModelOrderMu "1"
+     .SetMagParametricConductivity "False"
+     .DispModelEps  "None"
+     .DispModelMu "None"
+     .DispersiveFittingSchemeEps "Nth Order"
+     .MaximalOrderNthModelFitEps "10"
+     .ErrorLimitNthModelFitEps "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelEps "False"
+     .DispersiveFittingSchemeMu "Nth Order"
+     .MaximalOrderNthModelFitMu "10"
+     .ErrorLimitNthModelFitMu "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelMu "False"
+     .UseGeneralDispersionEps "False"
+     .UseGeneralDispersionMu "False"
+     .NLAnisotropy "False"
+     .NLAStackingFactor "1"
+     .NLADirectionX "1"
+     .NLADirectionY "0"
+     .NLADirectionZ "0"
+     .Colour "1", "0.501961", "0"
+     .Wireframe "False"
+     .Reflection "False"
+     .Allowoutline "True"
+     .Transparentoutline "False"
+     .Transparency "0"
+     .Create
+End With
+
+
+'## Merged Block - new component: component1
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+Component.New "component1"
+
+
+'## Merged Block - delete component: component1
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+Component.Delete "component1"
+
+
+'## Merged Block - new component: Component1
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+Component.New "Component1"
+
+
+'## Merged Block - define material: Si
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Material
+     .Reset
+     .Name "Si"
+     .Folder ""
+     .Rho "0.0"
+     .ThermalType "Normal"
+     .ThermalConductivity "0"
+     .SpecificHeat "0", "J/K/kg"
+     .DynamicViscosity "0"
+     .Emissivity "0"
+     .MetabolicRate "0.0"
+     .VoxelConvection "0.0"
+     .BloodFlow "0"
+     .MechanicsType "Unused"
+     .FrqType "all"
+     .Type "Normal"
+     .MaterialUnit "Frequency", "GHz"
+     .MaterialUnit "Geometry", "nm"
+     .MaterialUnit "Time", "ns"
+     .MaterialUnit "Temperature", "Kelvin"
+     .Epsilon "12.599"
+     .Mu "1"
+     .Sigma "0"
+     .TanD "0.0"
+     .TanDFreq "0.0"
+     .TanDGiven "False"
+     .TanDModel "ConstTanD"
+     .EnableUserConstTanDModelOrderEps "False"
+     .ConstTanDModelOrderEps "1"
+     .SetElParametricConductivity "False"
+     .ReferenceCoordSystem "Global"
+     .CoordSystemType "Cartesian"
+     .SigmaM "0"
+     .TanDM "0.0"
+     .TanDMFreq "0.0"
+     .TanDMGiven "False"
+     .TanDMModel "ConstTanD"
+     .EnableUserConstTanDModelOrderMu "False"
+     .ConstTanDModelOrderMu "1"
+     .SetMagParametricConductivity "False"
+     .DispModelEps  "None"
+     .DispModelMu "None"
+     .DispersiveFittingSchemeEps "Nth Order"
+     .MaximalOrderNthModelFitEps "10"
+     .ErrorLimitNthModelFitEps "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelEps "False"
+     .DispersiveFittingSchemeMu "Nth Order"
+     .MaximalOrderNthModelFitMu "10"
+     .ErrorLimitNthModelFitMu "0.1"
+     .UseOnlyDataInSimFreqRangeNthModelMu "False"
+     .UseGeneralDispersionEps "False"
+     .UseGeneralDispersionMu "False"
+     .NLAnisotropy "False"
+     .NLAStackingFactor "1"
+     .NLADirectionX "1"
+     .NLADirectionY "0"
+     .NLADirectionZ "0"
+     .Colour "1", "1", "0"
+     .Wireframe "False"
+     .Reflection "False"
+     .Allowoutline "True"
+     .Transparentoutline "False"
+     .Transparency "0"
+     .Create
+End With
+
+Dim n As Long
+Dim m As Long
+Dim p As Integer
+Dim R As Integer
+
+p = 520
+R = 44 'Número de células unitárias diminuído de 1
+
+Dim LX(0 To 2024) As String
+
+Dim caminhoArquivo_LX As String
+Dim numeroArquivo_LX As Long
+Dim i As Long
+
+caminhoArquivo_LX = "C:\Users\User\Downloads\ZJU_45x45_LX_simulation"
+
+numeroArquivo_LX = FreeFile
+Open caminhoArquivo_LX For Input As #numeroArquivo_LX
+
+For i = LBound(LX) To UBound(LX)
+
+    Line Input #numeroArquivo_LX, LX(i)
+Next i
+
+Close #numeroArquivo_LX
+
+Dim LY(0 To 2024) As String
+
+Dim caminhoArquivo_LY As String
+Dim numeroArquivo_LY As Long
+Dim j As Long
+
+caminhoArquivo_LY = "C:\Users\User\Downloads\ZJU_45x45_LY_simulation"
+
+numeroArquivo_LY = FreeFile
+Open caminhoArquivo_LY For Input As #numeroArquivo_LY
+
+For j = LBound(LY) To UBound(LY)
+
+    Line Input #numeroArquivo_LY, LY(j)
+Next j
+
+Close #numeroArquivo_LY
+
+	Dim minhaMatriz_LX(0 To 44, 0 To 44) As String
+
+    For i = 0 To 2024
+        linha = i \ 45
+        coluna = i Mod 45
+        minhaMatriz_LX(linha, coluna) = LX(i)
+    Next i
+
+    Dim minhaMatriz_LY(0 To 44, 0 To 44) As String
+
+    For i = 0 To 2024
+        linha = i \ 45
+        coluna = i Mod 45
+        minhaMatriz_LY(linha, coluna) = LY(i)
+    Next i
+
+
+For n = 0 To R
+For m = 0 To R
+
+'## Merged Block - define ecylinder: Component1:Meta Atom
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With ECylinder
+     .Reset
+     .Name "Meta Atom" + Str(n) + Str(m)
+     .Component "Component1"
+     .Material "Si"
+     .Xradius minhaMatriz_LX(n,m)
+     .Yradius minhaMatriz_LY(n,m)
+     .Axis "z"
+     .Zrange "0", "H"
+     .Xcenter n*p + p/2
+     .Ycenter m*p + p/2
+     .Segments "0"
+     .Create
+End With
+
+Next m
+Next n
+
+'## Merged Block - pick end point
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+Pick.PickEndpointFromId "Component1:Meta Atom", "1"
+
+
+'## Merged Block - pick end point
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+Pick.PickExtraCirclepointFromId "Component1:Meta Atom", "1", "1", "1"
+
+
+'## Merged Block - define distance dimension
+StartVersionStringOverrideMode "2020.7|29.0.1|20200710"
+With Dimension
+    .Reset
+    .CreationType "picks"
+    .SetType "Distance"
+    .SetID "0"
+    .SetOrientation "Smart Mode"
+    .SetDistance "-391.498779"
+    .SetViewVector "-0.738675", "-0.258264", "-0.622622"
+    .SetConnectedElement1 "Component1:Meta Atom"
+    .SetConnectedElement2 ""
+    .Create
+End With
+
+Pick.ClearAllPicks
+
+StopVersionStringOverrideMode
+End Sub
