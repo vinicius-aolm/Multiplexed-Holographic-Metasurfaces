@@ -27,3 +27,12 @@ resultsMLP_729/
 Teste_folga/
 Teste_malha_1/
 Teste_malha_local/
+Otimizacao e ML/
+
+# Arquivos Touchstone (meta-atom library data)
+*.ts
+
+# Arquivos duplicados ou temporários
+RawDFgenerator.py
+rawDFgen2.py
+DfGen.py
