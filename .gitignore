@@ -1,33 +1,29 @@
-@@
- # === Arquivos auxiliares / caches ===
- *.zip
- *.7z
- *.tar.gz
- *.gz
- *.bak
- *.old
- *.tmp
- *.DS_Store
- Algoritmos/PhaseMatching/
- Bibliotecas/
--# Estas duas linhas impediam que o Git adicionasse a estrutura de dados e hooks,
--# mesmo contendo somente arquivos .gitkeep. Remova‑as ou comente‑as para
--# permitir versionamento das pastas `data/` e `hooks/`.
--data/
--hooks/
- library_processed/
- library_raw/
- logs/
- objects/
- other_results/
- out_analise_malha_local/
- out_folgas/
- out_malha/
- out_malha_adapt/
- resources/
- resultsMLP_27x27_CaixaColada/
- resultsMLP_196/
- resultsMLP_729/
- Teste_folga/
- Teste_malha_1/
- Teste_malha_local/
+# === Arquivos auxiliares / caches ===
+*.zip
+*.7z
+*.tar.gz
+*.gz
+*.bak
+*.old
+*.tmp
+*.DS_Store
+
+# Pastas legadas e resultados que não devem ser versionadas
+Algoritmos/
+Bibliotecas/
+library_processed/
+library_raw/
+logs/
+objects/
+other_results/
+out_analise_malha_local/
+out_folgas/
+out_malha/
+out_malha_adapt/
+resources/
+resultsMLP_27x27_CaixaColada/
+resultsMLP_196/
+resultsMLP_729/
+Teste_folga/
+Teste_malha_1/
+Teste_malha_local/
