@@ -1,0 +1,38 @@
+# Multiplexed Holographic Metasurfaces
+# Python dependencies
+
+# Core Scientific Computing
+numpy>=1.21.0
+scipy>=1.7.0
+pandas>=1.3.0
+
+# Plotting and Visualization
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Image Processing
+Pillow>=8.3.0
+
+# Machine Learning
+scikit-learn>=0.24.0
+
+# Data Formats
+pyarrow>=5.0.0  # For Parquet support
+
+# Jupyter and Interactive Development
+jupyter>=1.0.0
+notebook>=6.4.0
+ipykernel>=6.0.0
+
+# Optional: Advanced Optimization
+# deap>=1.3.1  # For genetic algorithms
+# pyswarm>=0.6  # For particle swarm optimization
+
+# Optional: Deep Learning (if using neural network components)
+# torch>=1.9.0
+# tensorflow>=2.6.0
+
+# Development Tools (optional)
+# pytest>=6.2.0
+# black>=21.0
+# flake8>=3.9.0
