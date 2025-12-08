@@ -141,3 +141,4 @@ DfGen.py
 # Lock files
 *.lock
 .git/index.lock
+.pytest_cache/

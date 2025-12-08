@@ -7,6 +7,8 @@
 
 A comprehensive toolkit for designing and simulating multiplexed holographic metasurfaces. This project implements computational methods for phase-only hologram generation and metasurface design, bridging optical design with nanofabrication.
 
+**📚 [Quick Start Guide](docs/QUICKSTART.md)** | **📖 [Full Documentation](docs/)** | **🏗️ [Structure](docs/STRUCTURE.md)** | **🤝 [Contributing](CONTRIBUTING.md)**
+
 ## 🎯 Overview
 
 This repository contains tools for:
