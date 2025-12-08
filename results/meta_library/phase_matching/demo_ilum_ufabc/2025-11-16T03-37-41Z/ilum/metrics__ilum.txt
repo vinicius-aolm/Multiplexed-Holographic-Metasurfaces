@@ -1,0 +1,5 @@
+Erro_RMS_medio = 0.151289
+Erro_RMS_max   = 0.415224
+Pearson_final  = 0.738052
+DE_TE   = 0.986451
+RMSE_TE = 0.076003
