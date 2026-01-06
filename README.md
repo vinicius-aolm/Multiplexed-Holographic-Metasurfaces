@@ -212,11 +212,25 @@ If you use this work, please cite:
 
 ```bibtex
 @misc{multiplexed-holographic-metasurfaces,
-  author = {Vinícius, João, Humberto},
-  title = {Multiplexed Holographic Metasurfaces},
-  year = {2024},
+  author = {Vinícius André Oliveira Lima Moura, João Pedro Oliveira Casalli, Humberto Benedito Cavallaro Neto, Gabriel Felipe Mendes de Brito e González Pozzoni},
+  title = {Programmable Multiplexed Metasurfaces by Polarization: Design and Optimization for Multifunctional Holography and Dammann gratings},
+  year = {2025},
   institution = {Ilum - School of Science, CNPEM},
   note = {Capstone Project}
+}
+```
+
+or 
+
+```bibtex
+@misc{multiplexed-holographic-metasurfaces,
+  author = {Vinícius André Oliveira Lima Moura, João Pedro Oliveira Casalli, Humberto Benedito Cavallaro Neto, Gabriel Felipe Mendes de Brito e González Pozzoni},
+  title = {METASSUPERFÍCIES MULTIPLEXADAS PROGRAMÁVEIS POR POLARIZAÇÃO:
+DESIGN E OTIMIZAÇÃO PARA HOLOGRAFIA MULTIFUNCIONAL E GRADES
+DE DAMMANN},
+  year = {2025},
+  institution = {Ilum - Escola de Ciência, CNPEM},
+  note = {Monografia}
 }
 ```
 
@@ -234,10 +248,10 @@ Key references are available in [`docs/references/`](docs/references/):
 
 ## 👥 Authors
 
-- **Vinícius**
-- **João** 
-- **Humberto**
-- **Gabriel**
+- **Vinícius André Oliveira Lima Moura**
+- **João Pedro Oliveira Casalli** 
+- **Humberto Benedito Cavallaro Neto**
+- **Gabriel Felipe Mendes de Brito e González Pozzoni**
 
 *Capstone Project - Ilum - School of Science, CNPEM*
 
