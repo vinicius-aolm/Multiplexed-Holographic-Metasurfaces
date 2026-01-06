@@ -237,6 +237,7 @@ Key references are available in [`docs/references/`](docs/references/):
 - **Vinícius**
 - **João** 
 - **Humberto**
+- **Gabriel**
 
 *Capstone Project - Ilum - School of Science, CNPEM*
 
