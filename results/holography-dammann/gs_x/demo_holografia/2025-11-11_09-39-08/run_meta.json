@@ -1,0 +1,14 @@
+{
+  "experiment": "demo_holografia",
+  "run_id": "2025-11-11_09-39-08",
+  "pol": "X",
+  "wavelength_nm": 1064,
+  "z_um": 380,
+  "dx_nm": 520,
+  "iterations": 200,
+  "targets": [
+    "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\data\\targets\\common\\ilum.png",
+    "C:\\Users\\vinicius23011\\MATLAB\\Projects\\TCC\\data\\targets\\common\\ufabc.png"
+  ],
+  "summary_png": "results\\holography\\gs_x\\demo_holografia\\2025-11-11_09-39-08\\summary_demo_holografia__ilum__ufabc__X__λ_1064nm__z_380um__dx_520nm__iter_200.png"
+}

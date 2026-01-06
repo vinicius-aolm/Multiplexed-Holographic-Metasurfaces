@@ -1,0 +1,16 @@
+{
+  "experiment": "teste_dammann",
+  "run_id": "2025-11-11_11-03-33",
+  "pol": "Y",
+  "wavelength_nm": 1064,
+  "P_nm": 520,
+  "supercell_pixels": 45,
+  "n_supercells": 10,
+  "iterations": 400,
+  "random_seed": 0,
+  "metrics": {
+    "DE": 0.9990261369109924,
+    "RMSE": 0.07087334737185666,
+    "M_orders": 1513
+  }
+}
